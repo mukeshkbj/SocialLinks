@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+### Added
+- Demo video (`docs/demo/social-links-demo.mp4`) with thumbnail, English captions, YouTube upload kit, and the scripts that render it (`docs/demo/source`).
+
 ## 2.0.0 — 2026-11-23
 ### Added
 - **Copy** from the right-click menu (Chrome/Edge via an offscreen page; Firefox via the background clipboard). Email links are copy-only.

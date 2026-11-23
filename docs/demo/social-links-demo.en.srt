@@ -1,0 +1,63 @@
+1
+00:00:00,300 --> 00:00:04,400
+Social Links: your LinkedIn, GitHub and every other profile link, one right-click away.
+
+2
+00:00:05,000 --> 00:00:08,600
+Every application asks for the same profile links.
+
+3
+00:00:08,900 --> 00:00:15,500
+Right-click › Social links › LinkedIn › Copy. Then paste.
+
+4
+00:00:15,700 --> 00:00:20,600
+Same for GitHub, or any link you've saved.
+
+5
+00:00:20,900 --> 00:00:26,000
+Or open any saved link in a new tab.
+
+6
+00:00:26,300 --> 00:00:31,400
+Right-click a profile link › + Add this link. Platform and username detected.
+
+7
+00:00:31,700 --> 00:00:34,000
+Saved: X now shows ✎ Edit instead of + Add.
+
+8
+00:00:34,300 --> 00:00:37,800
+Everything lives behind the toolbar button.
+
+9
+00:00:38,100 --> 00:00:40,800
++ means not added yet. ✎ means saved: click it to edit.
+
+10
+00:00:41,100 --> 00:00:44,100
+Add any other site with your own name: Kaggle, Behance, a portfolio.
+
+11
+00:00:44,400 --> 00:00:47,000
+Drag or use ↑ ↓ to reorder. Undo if you remove one by mistake.
+
+12
+00:00:47,300 --> 00:00:52,500
+Separate Work and Personal profiles. Switch here or from the menu.
+
+13
+00:00:52,800 --> 00:00:58,500
+Share card: one scan saves you as a phone contact. vCard download too.
+
+14
+00:00:58,800 --> 00:01:03,700
+Back up to a file. Restore with a preview, then merge or replace.
+
+15
+00:01:04,000 --> 00:01:10,200
+Private by design: never reads or changes the websites you visit. No tracking, no network requests.
+
+16
+00:01:10,500 --> 00:01:16,500
+Social Links is free and open source: github.com/mukeshkbj/SocialLinks

@@ -4,6 +4,12 @@ Your LinkedIn, GitHub and other profile links, one right-click away on any websi
 
 **Never reads or changes the websites you visit.** No host permissions, no content scripts, no analytics, no network requests.
 
+## Demo
+
+[![Social Links demo video: all your links, one right-click](docs/demo/social-links-thumbnail.png)](docs/demo/social-links-demo.mp4)
+
+A 77-second walkthrough ([MP4](docs/demo/social-links-demo.mp4), [captions](docs/demo/social-links-demo.en.srt)): copy and open links from the right-click menu, save a link by right-clicking it, the toolbar panel, profiles, the share card and backup. The source that renders it is in [`docs/demo/source`](docs/demo/source).
+
 ## Features
 
 - **Right-click menu everywhere** — open or copy any saved link; add the link, page or text you right-clicked; add or edit any platform; switch profile.

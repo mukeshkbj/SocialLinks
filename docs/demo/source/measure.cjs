@@ -1,0 +1,12 @@
+const { chromium } = require('playwright');const fs=require('fs'),os=require('os'),path=require('path');
+(async()=>{const EXT=path.resolve(__dirname,'../../../dist/chromium');
+const ctx=await chromium.launchPersistentContext(fs.mkdtempSync(os.tmpdir()+'/m'),{executablePath: process.env.CHROME || undefined,headless:true,viewport:{width:400,height:900},args:['--headless=new','--disable-features=DisableLoadExtensionCommandLineSwitch',`--disable-extensions-except=${EXT}`,`--load-extension=${EXT}`]});
+const sw=ctx.serviceWorkers()[0]||await ctx.waitForEvent('serviceworker');const id=sw.url().split('/')[2];
+const src=fs.readFileSync('capture.cjs','utf8');const DEMO=eval('('+src.slice(src.indexOf('{ v: 2'),src.indexOf('};\n(async')+1)+')');
+await sw.evaluate(d=>chrome.storage.sync.set({data:d}),DEMO);
+const pg=await ctx.newPage();await pg.goto(`chrome-extension://${id}/popup.html`);await pg.waitForSelector('.item');
+const c=async s=>pg.evaluate(s=>{const r=document.querySelector(s).getBoundingClientRect();return [Math.round(r.left+r.width/2),Math.round(r.top+r.height/2)]},s);
+const out={profSel:await c('#profSel')};
+await pg.click('#addBtn');Object.assign(out,{addBtn:await c('#addBtn'),gh:await c('[data-p=github]'),custom:await c('[data-p=custom]')});
+await pg.click('[data-p=custom]');Object.assign(out,{nm:await c('#nm'),val:await c('#val'),save:await c('#save')});
+console.log(JSON.stringify(out));await ctx.close()})();

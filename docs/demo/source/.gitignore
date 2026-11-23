@@ -1,0 +1,8 @@
+scenes/
+tmp/
+check*/
+concat.txt
+audio.wav
+audio_norm.wav
+video_only.mp4
+*.part.mp4
