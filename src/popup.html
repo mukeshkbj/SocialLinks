@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title data-i18n="extShortName">Social Links</title>
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+<header class="top">
+  <h1 data-i18n="extShortName">Social links</h1>
+  <button class="add" id="addBtn" aria-expanded="false" aria-controls="sheet"><span aria-hidden="true">+</span> <span data-i18n="btnAdd">Add</span></button>
+</header>
+
+<div class="profbar">
+  <label for="profSel" class="sr" data-i18n="lblProfile">Profile</label>
+  <select id="profSel"></select>
+  <button class="ib" id="profRename" data-i18n-label="btnRenameProfile" data-i18n-title="btnRenameProfile">✎</button>
+  <button class="ib" id="profNew" data-i18n-label="btnNewProfile" data-i18n-title="btnNewProfile">+</button>
+  <button class="ib" id="profDel" data-i18n-label="btnDeleteProfile" data-i18n-title="btnDeleteProfile">−</button>
+</div>
+<form class="panel" id="profForm" hidden novalidate>
+  <label for="profName" id="profFormLab" data-i18n="lblProfileName">Profile name</label>
+  <input id="profName" maxlength="30" autocomplete="off">
+  <p class="err" id="profErr" role="alert"></p>
+  <div class="row"><button class="btn" type="submit" data-i18n="btnSave">Save</button><button class="btn ghost" type="button" id="profCancel" data-i18n="btnCancel">Cancel</button></div>
+</form>
+<div class="panel warn" id="profDelPanel" hidden role="alertdialog" aria-labelledby="profDelMsg">
+  <p id="profDelMsg"></p>
+  <div class="row"><button class="btn danger" id="profDelYes" data-i18n="btnDelete">Delete</button><button class="btn ghost" id="profDelNo" data-i18n="btnCancel">Cancel</button></div>
+</div>
+
+<p class="banner" id="localWarn" hidden data-i18n="warnLocal">Too many links to sync, so they're saved on this computer only. Export a backup to keep them safe.</p>
+
+<section class="panel" id="sheet" hidden>
+  <div class="grid" id="grid" role="group" data-i18n-label="lblChoosePlatform"></div>
+  <form id="form" hidden novalidate>
+    <div id="nameRow" class="field" hidden>
+      <label for="nm" data-i18n="lblName">Name</label>
+      <div class="pre"><input id="nm" maxlength="40" autocomplete="off" data-i18n-ph="phName"></div>
+    </div>
+    <div class="field">
+      <label for="val" id="lab"></label>
+      <div class="pre"><span id="prefix" aria-hidden="true"></span><input id="val" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="err"></div>
+    </div>
+    <p class="err" id="err" role="alert"></p>
+    <div class="row">
+      <button class="btn" type="submit" id="save"></button>
+      <button class="btn ghost" type="button" id="cancel" data-i18n="btnCancel">Cancel</button>
+    </div>
+  </form>
+</section>
+
+<section class="panel" id="sharePanel" hidden aria-labelledby="shareTitle">
+  <h2 id="shareTitle" data-i18n="shareTitle">Share card</h2>
+  <div class="field">
+    <label for="owner" data-i18n="lblYourName">Your name on the card</label>
+    <input id="owner" maxlength="60" autocomplete="name">
+  </div>
+  <div class="qrbox"><canvas id="qr" role="img" data-i18n-label="lblQr"></canvas></div>
+  <p class="hint" id="qrNote"></p>
+  <div class="row">
+    <button class="btn" id="dlVcf" data-i18n="btnDownloadVcf">Download vCard</button>
+    <button class="btn ghost" id="dlPng" data-i18n="btnDownloadPng">Save QR image</button>
+    <button class="btn ghost" id="shareClose" data-i18n="btnClose">Close</button>
+  </div>
+</section>
+
+<section class="panel" id="importPanel" hidden aria-labelledby="importTitle">
+  <h2 id="importTitle" data-i18n="importTitle">Restore from backup</h2>
+  <label class="btn ghost file"><input type="file" id="file" accept=".json,application/json"><span data-i18n="btnChooseFile">Choose backup file…</span></label>
+  <div id="preview" hidden>
+    <p id="previewText"></p>
+    <ul class="pv" id="previewList"></ul>
+    <fieldset>
+      <legend data-i18n="lblImportMode">How should it be applied?</legend>
+      <label class="radio"><input type="radio" name="mode" value="merge" checked> <span data-i18n="modeMerge">Merge — add new links, keep mine</span></label>
+      <label class="radio"><input type="radio" name="mode" value="replace"> <span data-i18n="modeReplace">Replace — use only the backup</span></label>
+    </fieldset>
+    <div class="row"><button class="btn" id="applyImport" data-i18n="btnApply">Apply</button></div>
+  </div>
+  <p class="err" id="importErr" role="alert"></p>
+  <div class="row"><button class="btn ghost" id="importClose" data-i18n="btnClose">Close</button></div>
+</section>
+
+<div class="search" id="searchWrap" hidden>
+  <label for="search" class="sr" data-i18n="lblSearch">Search links</label>
+  <input id="search" type="search" data-i18n-ph="phSearch" autocomplete="off">
+</div>
+
+<p class="empty" id="empty" hidden data-i18n-html="emptyState"></p>
+<p class="empty" id="noMatch" hidden data-i18n="noMatch">No links match.</p>
+<ul class="links" id="links" data-i18n-label="lblYourLinks"></ul>
+
+<footer>
+  <div class="row">
+    <button class="btn ghost sm" id="cpAll" data-i18n="btnCopyAll">Copy all</button>
+    <button class="btn ghost sm" id="cpJson" data-i18n="btnCopyJson">Copy JSON</button>
+    <button class="btn ghost sm" id="shareBtn" data-i18n="btnShare">Share card</button>
+    <button class="btn ghost sm" id="exportBtn" data-i18n="btnExport">Back up</button>
+    <button class="btn ghost sm" id="importBtn" data-i18n="btnImport">Restore</button>
+    <button class="btn ghost sm" id="favBtn" hidden data-i18n-title="tipIcons"></button>
+    <button class="btn ghost sm" id="undo" hidden data-i18n="btnUndo">Undo remove</button>
+  </div>
+  <p class="toast" id="toast" role="status" aria-live="polite"></p>
+  <p class="tip" data-i18n="tipFooter">Right-click anywhere › Social links to open, copy or add. Alt+Shift+L opens this panel. No access to website data.</p>
+</footer>
+<script src="platforms.js"></script>
+<script src="i18n.js"></script>
+<script src="store.js"></script>
+<script src="qr.js"></script>
+<script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "social-links-extension",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Right-click open, copy and add your social links on any website. Chrome, Edge, Firefox, Safari.",
+  "license": "MIT",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node build.mjs && node --test tests/unit.test.mjs tests/firefox-sim.test.mjs",
+    "test:qr": "node tests/qr-gen.cjs && python3 tests/qr_decode.py",
+    "test:e2e": "node build.mjs && node tests/e2e.cjs",
+    "firefox:lint": "npx web-ext lint --source-dir dist/firefox",
+    "firefox:run": "npx web-ext run --source-dir dist/firefox",
+    "firefox:sign": "npx web-ext sign --source-dir dist/firefox --channel unlisted"
+  },
+  "devDependencies": {
+    "playwright": "^1.50.0"
+  }
+}

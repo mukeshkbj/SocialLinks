@@ -1,0 +1,335 @@
+{
+ "extName": {
+  "message": "Social Links – right-click open, copy & add"
+ },
+ "extShortName": {
+  "message": "Social links"
+ },
+ "extDescription": {
+  "message": "Keep your LinkedIn, GitHub and other profile links one right-click away on any website. Open, copy, add — no access to website data."
+ },
+ "cmdOpen": {
+  "message": "Open Social Links"
+ },
+ "btnAdd": {
+  "message": "Add"
+ },
+ "btnAddX": {
+  "message": "Add $1"
+ },
+ "btnEdit": {
+  "message": "Edit"
+ },
+ "btnEditX": {
+  "message": "Edit $1"
+ },
+ "btnCopy": {
+  "message": "Copy"
+ },
+ "btnCopyX": {
+  "message": "Copy $1 link"
+ },
+ "btnOpen": {
+  "message": "Open"
+ },
+ "btnUp": {
+  "message": "Move up"
+ },
+ "btnUpX": {
+  "message": "Move $1 up"
+ },
+ "btnDown": {
+  "message": "Move down"
+ },
+ "btnDownX": {
+  "message": "Move $1 down"
+ },
+ "btnRemove": {
+  "message": "Remove"
+ },
+ "btnRemoveX": {
+  "message": "Remove $1"
+ },
+ "btnSave": {
+  "message": "Save"
+ },
+ "btnSaveChanges": {
+  "message": "Save changes"
+ },
+ "btnCancel": {
+  "message": "Cancel"
+ },
+ "btnClose": {
+  "message": "Close"
+ },
+ "btnDelete": {
+  "message": "Delete"
+ },
+ "btnApply": {
+  "message": "Apply"
+ },
+ "btnRenameProfile": {
+  "message": "Rename profile"
+ },
+ "btnNewProfile": {
+  "message": "New profile"
+ },
+ "btnDeleteProfile": {
+  "message": "Delete profile"
+ },
+ "btnCopyAll": {
+  "message": "Copy all"
+ },
+ "btnCopyJson": {
+  "message": "Copy JSON"
+ },
+ "btnShare": {
+  "message": "Share card"
+ },
+ "btnExport": {
+  "message": "Back up"
+ },
+ "btnImport": {
+  "message": "Restore"
+ },
+ "btnUndo": {
+  "message": "Undo remove"
+ },
+ "btnDownloadVcf": {
+  "message": "Download vCard"
+ },
+ "btnDownloadPng": {
+  "message": "Save QR image"
+ },
+ "btnChooseFile": {
+  "message": "Choose backup file…"
+ },
+ "lblProfile": {
+  "message": "Profile"
+ },
+ "lblProfileName": {
+  "message": "Profile name"
+ },
+ "lblNewProfile": {
+  "message": "New profile name"
+ },
+ "lblRenameProfile": {
+  "message": "Rename profile"
+ },
+ "lblChoosePlatform": {
+  "message": "Choose a platform"
+ },
+ "lblName": {
+  "message": "Name"
+ },
+ "lblEmail": {
+  "message": "Email address"
+ },
+ "lblUrl": {
+  "message": "$1 URL"
+ },
+ "lblUsername": {
+  "message": "$1 username or profile URL"
+ },
+ "lblSearch": {
+  "message": "Search links"
+ },
+ "lblYourLinks": {
+  "message": "Your links"
+ },
+ "lblReorder": {
+  "message": "Reorder $1"
+ },
+ "lblReorderTip": {
+  "message": "Drag, or press ↑ / ↓ to move"
+ },
+ "lblYourName": {
+  "message": "Your name on the card"
+ },
+ "lblQr": {
+  "message": "QR code containing your contact card"
+ },
+ "lblImportMode": {
+  "message": "How should it be applied?"
+ },
+ "phName": {
+  "message": "e.g. Portfolio, Kaggle, Behance"
+ },
+ "phSearch": {
+  "message": "Search links…"
+ },
+ "phUsername": {
+  "message": "username"
+ },
+ "emptyState": {
+  "message": "No links in this profile yet. Click <b>+ Add</b>, or right-click any profile link on a website and choose <b>Social links › + Add / ✎ Edit › + Add this link</b>."
+ },
+ "noMatch": {
+  "message": "No links match."
+ },
+ "warnLocal": {
+  "message": "Too many links to sync, so they're saved on this computer only. Back up to keep them safe."
+ },
+ "shareTitle": {
+  "message": "Share card"
+ },
+ "importTitle": {
+  "message": "Restore from backup"
+ },
+ "modeMerge": {
+  "message": "Merge — add new links, keep mine"
+ },
+ "modeReplace": {
+  "message": "Replace — use only the backup"
+ },
+ "previewSummary": {
+  "message": "Backup contains $1 profile(s) and $2 link(s):"
+ },
+ "qrHint": {
+  "message": "Scan with a phone camera to save $1 link(s) as a contact."
+ },
+ "qrEmpty": {
+  "message": "Add some links first — the card is empty."
+ },
+ "qrDense": {
+  "message": "This card is very detailed and some phone cameras may struggle. Download the vCard instead, or use fewer links."
+ },
+ "qrTooLong": {
+  "message": "Too many links for one QR code. Download the vCard instead."
+ },
+ "tipFooter": {
+  "message": "Right-click anywhere › Social links to open, copy or add. Alt+Shift+L opens this panel. No access to website data."
+ },
+ "confirmDeleteProfile": {
+  "message": "Delete the profile “$1” and its $2 link(s)? Back up first if you might want them again."
+ },
+ "errEmpty": {
+  "message": "Please enter a value."
+ },
+ "errEmail": {
+  "message": "That doesn't look like an email address."
+ },
+ "errUrl": {
+  "message": "That link isn't valid."
+ },
+ "errWrongSite": {
+  "message": "That link isn't on $1."
+ },
+ "errNotProfile": {
+  "message": "That's a $1 link, but not a profile page."
+ },
+ "errNeedUrl": {
+  "message": "Please paste a full web address starting with https://"
+ },
+ "errUsername": {
+  "message": "Usernames can use letters, numbers, dots, dashes and underscores."
+ },
+ "errDuplicate": {
+  "message": "You've already saved this link in this profile."
+ },
+ "errProfileName": {
+  "message": "Please enter a name."
+ },
+ "errProfileExists": {
+  "message": "There's already a profile with that name."
+ },
+ "errProfileMax": {
+  "message": "You can have up to 20 profiles."
+ },
+ "errBackupJson": {
+  "message": "That file isn't valid JSON."
+ },
+ "errBackupShape": {
+  "message": "That file isn't a Social Links backup."
+ },
+ "errBackupSize": {
+  "message": "That file is too large to be a backup."
+ },
+ "toastAdded": {
+  "message": "Link added"
+ },
+ "toastSaved": {
+  "message": "Saved"
+ },
+ "toastRemoved": {
+  "message": "Removed $1"
+ },
+ "toastRestored": {
+  "message": "Restored"
+ },
+ "toastCopied": {
+  "message": "Copied"
+ },
+ "toastCopyFailed": {
+  "message": "Couldn't copy — your browser blocked it"
+ },
+ "toastDownloaded": {
+  "message": "Downloaded"
+ },
+ "toastBackup": {
+  "message": "Backup downloaded"
+ },
+ "toastProfile": {
+  "message": "Switched to $1"
+ },
+ "toastProfileDeleted": {
+  "message": "Deleted $1"
+ },
+ "toastReplaced": {
+  "message": "Restored from backup"
+ },
+ "toastMerged": {
+  "message": "Merged: $1 added, $2 already there"
+ },
+ "srMoved": {
+  "message": "$1 moved to position $2"
+ },
+ "menuOpen": {
+  "message": "Open"
+ },
+ "menuCopy": {
+  "message": "Copy"
+ },
+ "menuNoLinks": {
+  "message": "No links in $1 yet"
+ },
+ "menuAddEdit": {
+  "message": "+ Add / ✎ Edit"
+ },
+ "menuAddThisLink": {
+  "message": "Add this link"
+ },
+ "menuAddThisPage": {
+  "message": "Add this page"
+ },
+ "menuAddSelection": {
+  "message": "Add “%s”"
+ },
+ "menuAddPlatform": {
+  "message": "Add $1"
+ },
+ "menuEditPlatform": {
+  "message": "Edit $1"
+ },
+ "menuSwitchProfile": {
+  "message": "Profile: $1"
+ },
+ "menuManage": {
+  "message": "Manage links…"
+ },
+ "profileWork": {
+  "message": "Work"
+ },
+ "profilePersonal": {
+  "message": "Personal"
+ },
+ "btnShowIcons": {
+  "message": "Show site icons"
+ },
+ "btnHideIcons": {
+  "message": "Hide site icons"
+ },
+ "tipIcons": {
+  "message": "Shows the real icon for Other links. Chrome will ask for permission to read website icons."
+ }
+}

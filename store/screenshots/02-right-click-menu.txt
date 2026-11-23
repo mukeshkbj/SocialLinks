@@ -1,0 +1,56 @@
+Social links
+  kaggle.com — kaggle.com/mukesh
+    ↗ Open
+    ⧉ Copy
+  ⧉ Email — me@example.com
+  Portfolio — mukesh.dev
+    ↗ Open
+    ⧉ Copy
+  Site 0 — site0.example.org
+    ↗ Open
+    ⧉ Copy
+  Site 1 — site1.example.org
+    ↗ Open
+    ⧉ Copy
+  Site 2 — site2.example.org
+    ↗ Open
+    ⧉ Copy
+  Site 3 — site3.example.org
+    ↗ Open
+    ⧉ Copy
+  Site 4 — site4.example.org
+    ↗ Open
+    ⧉ Copy
+  Site 5 — site5.example.org
+    ↗ Open
+    ⧉ Copy
+  Site 6 — site6.example.org
+    ↗ Open
+    ⧉ Copy
+  Site 7 — site7.example.org
+    ↗ Open
+    ⧉ Copy
+  LinkedIn — linkedin.com/in/jane-doe
+    ↗ Open
+    ⧉ Copy
+  + Add / ✎ Edit
+    + Add this link
+    + Add this page
+    + Add “%s”
+    ✎ Edit LinkedIn
+    + Add GitHub
+    + Add X (Twitter)
+    + Add Instagram
+    + Add YouTube
+    + Add Facebook
+    + Add TikTok
+    + Add Medium
+    + Add DEV
+    + Add Stack Overflow
+    + Add Website
+    ✎ Edit Email
+    + Add Other link
+  Profile: Work
+    Work (12)
+    Personal (0)
+  Manage links…
