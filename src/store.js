@@ -29,6 +29,7 @@ var SL = globalThis.SL || (globalThis.SL = {});
       out = { p, v: String(l.v || u.href).slice(0, 300), url: u.href };
     }
     if (p === 'custom') out.label = String(l.label || SL.cleanHost(new URL(out.url).hostname)).slice(0, 40);
+    if (typeof l.main === 'boolean') out.main = l.main;
     out.id = /^[\w-]{4,40}$/.test(l.id || '') ? l.id : SL.newId();
     return out;
   }
