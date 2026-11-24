@@ -215,13 +215,13 @@ def main():
         gh = [l for l in d['profiles'][0]['links'] if l['p'] == 'github']
         ok(len(gh) == 1 and gh[0]['id'] == 'gh01' and gh[0]['url'] == 'https://github.com/someone',
            'menu "+ Add this link" on a GitHub link updates the GitHub entry, keeps its id (SL.store.load)', json.dumps(gh))
-        js(BG + 'await bg.__sl.onClick({ menuItemId: "save-sel", selectionText: " dev@example.org " }, { id: -1, index: 0 });')
+        js(BG + 'await bg.__sl.onClick({ menuItemId: "save-sel", selectionText: " https://dribbble.com/alexmorgan " }, { id: -1, index: 0 });')
         js(BG + 'await bg.__sl.onClick({ menuItemId: "save-link", linkUrl: "javascript:alert(1)" }, { id: -1, index: 0 });')
         d = js('return await SL.store.load()')
         W = d['profiles'][0]['links']
-        ok(any(l['p'] == 'email' and l['v'] == 'dev@example.org' for l in W) and not any('javascript' in l['url'] for l in W),
-           'menu adds a selected email; javascript: link rejected')
-        ok(wait(lambda: items() == 6), 'open popup refreshes when the background saves', str(items()))
+        ok(any(l['p'] == 'custom' and 'dribbble.com/alexmorgan' in l['url'] for l in W) and len(W) == 5
+           and not any('javascript' in l['url'] for l in W), 'menu adds a selected URL as an Other link; javascript: link rejected', json.dumps(W))
+        ok(wait(lambda: items() == 5), 'open popup refreshes when the background saves', str(items()))
 
         # switch profile from the menu
         js(BG + 'await bg.__sl.onClick({ menuItemId: "pr:personal" }, { id: -1, index: 0 });')
@@ -231,12 +231,17 @@ def main():
         js(BG + 'await bg.__sl.onClick({ menuItemId: "pr:work" }, { id: -1, index: 0 });')
 
         # open from the menu
-        before = len(driver.window_handles)
+        ext_handle = driver.current_window_handle
+        before = set(driver.window_handles)
         js(BG + 'await bg.__sl.onClick({ menuItemId: "o:li01" }, { id: -1, index: 0 });')
-        ok(wait(lambda: len(driver.window_handles) == before + 1), 'menu Open opens a new tab')
-        urls = js('return (await browser.tabs.query({})).map(t => t.url)')
-        ok(any('linkedin.com/in/alex-morgan-dev' in (u or '') for u in urls), 'new tab is the LinkedIn profile', json.dumps(urls))
-        js('const t = (await browser.tabs.query({})).filter(t => /linkedin/.test(t.url || "")); await browser.tabs.remove(t.map(x => x.id));')
+        ok(wait(lambda: len(set(driver.window_handles) - before) == 1), 'menu Open opens a new tab')
+        new = list(set(driver.window_handles) - before)
+        if new:
+            driver.switch_to.window(new[0])
+            wait(lambda: 'linkedin' in driver.current_url, 10)
+            ok('linkedin.com/in/alex-morgan-dev' in driver.current_url, 'new tab is the LinkedIn profile', driver.current_url)
+            driver.close()
+            driver.switch_to.window(ext_handle)
 
         # copy from the menu (background page navigator.clipboard, clipboardWrite)
         try:
@@ -251,15 +256,17 @@ def main():
             ok(False, 'menu Copy (clipboard check)', str(e).splitlines()[0])
 
         # ---------------- paste into a real web page ----------------
-        ext_handle = driver.current_window_handle
         driver.switch_to.new_window('tab')
         driver.get(URL)
         page_handle = driver.current_window_handle
         driver.switch_to.window(ext_handle)
         perm = js('return await browser.permissions.contains({ origins: ["http://127.0.0.1/*"] })')
         print('host permission for 127.0.0.1 granted at install (test copy):', perm, flush=True)
-        tab = js('const t = (await browser.tabs.query({})).find(t => (t.url || "").startsWith(arguments[0])); return t && { id: t.id, index: t.index };', URL)
-        ok(tab is not None, 'found the web page tab via browser.tabs.query')
+        # tab.url is only visible with a host permission; otherwise take the one tab that isn't this page
+        tab = js('const me = await browser.tabs.getCurrent(), all = await browser.tabs.query({});'
+                 'const t = all.find(t => (t.url || "").startsWith(arguments[0])) || (all.length === 2 ? all.find(t => t.id !== me.id) : null);'
+                 'return t && { id: t.id, index: t.index, urlVisible: !!t.url };', URL)
+        ok(tab is not None, 'found the web page tab via browser.tabs.query', json.dumps(tab))
 
         def paste(field, link, prep=''):
             # schedule the menu click in the background, then bring the page to the front with the field focused
