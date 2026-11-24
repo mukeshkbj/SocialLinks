@@ -5,10 +5,11 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 
 const mem = { sync: {}, local: {} }; let writes = 0;
+const pick = (o, k) => k == null ? JSON.parse(JSON.stringify(o)) : Object.fromEntries([].concat(k).filter(x => x in o).map(x => [x, JSON.parse(JSON.stringify(o[x]))]));
 const area = name => ({
-  get: async k => (typeof k === 'string' ? (k in mem[name] ? { [k]: mem[name][k] } : {}) : { ...mem[name] }),
+  get: async k => pick(mem[name], k),
   set: async o => { writes++; Object.assign(mem[name], JSON.parse(JSON.stringify(o))); },
-  remove: async k => { delete mem[name][k]; }
+  remove: async k => { writes++; for (const x of [].concat(k)) delete mem[name][x]; }
 });
 globalThis.chrome = { storage: { sync: area('sync'), local: area('local'), onChanged: { addListener() {} } }, i18n: { getMessage: () => '' } };
 globalThis.SL = require('../src/platforms.js');
@@ -20,14 +21,18 @@ test('first run on a new device does not write empty profiles over synced data',
   const d = await SL.store.load();
   assert.equal(d.profiles.length, 2);
   assert.equal(writes, 0, 'nothing written until the user changes something');
-  assert.equal(mem.sync.data, undefined);
+  assert.deepEqual(Object.keys(mem.sync), [], 'sync storage untouched');
+  assert.deepEqual(Object.keys(mem.local), [], 'local storage untouched');
 });
 
 test('v1 links are still migrated (and saved) on first run', async () => {
   mem.sync = { links: [{ p: 'github', v: 'a', url: 'https://github.com/a' }] }; mem.local = {}; writes = 0;
   const d = await SL.store.load();
   assert.equal(d.profiles[0].links[0].url, 'https://github.com/a');
-  assert.ok(mem.sync.data, 'migrated data saved');
+  const saved = Object.values(mem.sync).find(r => r && r.url === 'https://github.com/a');
+  assert.ok(saved && saved.pid === d.profiles[0].id, 'migrated link saved as its own item');
+  const again = await SL.store.load();
+  assert.equal(again.profiles[0].name, 'Work'); assert.equal(again.profiles[0].links[0].url, 'https://github.com/a', 'reads back');
   assert.equal(mem.sync.links, undefined);
 });
 

@@ -8,10 +8,11 @@ const require = createRequire(import.meta.url);
 // Minimal fake of chrome.storage with a configurable sync quota.
 const mem = { sync: {}, local: {} };
 let syncFails = false;
+const pick = (o, k) => k == null ? JSON.parse(JSON.stringify(o)) : Object.fromEntries([].concat(k).filter(x => x in o).map(x => [x, JSON.parse(JSON.stringify(o[x]))]));
 const area = name => ({
-  get: async k => (typeof k === 'string' ? (k in mem[name] ? { [k]: mem[name][k] } : {}) : { ...mem[name] }),
+  get: async k => pick(mem[name], k),
   set: async o => { if (name === 'sync' && syncFails) throw new Error('QUOTA_BYTES_PER_ITEM quota exceeded'); Object.assign(mem[name], JSON.parse(JSON.stringify(o))); },
-  remove: async k => { delete mem[name][k]; }
+  remove: async k => { for (const x of [].concat(k)) delete mem[name][x]; }
 });
 globalThis.chrome = { storage: { sync: area('sync'), local: area('local'), onChanged: { addListener() {} } }, i18n: { getMessage: () => '' } };
 globalThis.SL = require('../src/platforms.js');
@@ -83,16 +84,23 @@ test('first run migrates v1 links into the Work profile', async () => {
 
 test('storage falls back to local when sync is over quota, and returns', async () => {
   mem.sync = {}; mem.local = {};
+  // sync allows 512 items / 100 KB in all: 3 profiles x 200 links is more than that
   const d = SL.store.fresh();
-  for (let i = 0; i < 120; i++) d.profiles[0].links.push({ id: 'id' + i, p: 'custom', v: 'x', url: 'https://example' + i + '.com/a-fairly-long-path/' + i, label: 'Site ' + i });
+  d.profiles.push({ id: 'more', name: 'More', owner: '', links: [] });
+  for (const [n, pr] of d.profiles.entries())
+    for (let i = 0; i < 200; i++) pr.links.push({ id: 'id' + n + '-' + i, p: 'custom', v: 'x', url: 'https://example' + i + '.com/a-fairly-long-path/' + i, label: 'Site ' + i });
   assert.equal(await SL.store.save(d), 'local');
   assert.equal(await SL.store.mode(), 'local');
-  assert.equal((await SL.store.load()).profiles[0].links.length, 120);
-  d.profiles[0].links.length = 3;
+  assert.equal((await SL.store.load()).profiles[0].links.length, 200);
+  for (const pr of d.profiles) pr.links.length = Math.min(pr.links.length, 3);
   assert.equal(await SL.store.save(d), 'sync');
   assert.equal(await SL.store.mode(), 'sync');
+  assert.equal((await SL.store.load()).profiles[2].links.length, 3);
+  assert.ok(!Object.keys(mem.local).some(k => /^[plo]_/.test(k)), 'local copy cleared after moving back');
   syncFails = true;                                    // sync disabled / quota error
+  d.profiles[0].owner = 'Ada';                         // (a save with no changes doesn't write at all)
   assert.equal(await SL.store.save(d), 'local');
+  assert.equal((await SL.store.load()).profiles[0].owner, 'Ada');
   syncFails = false;
 });
 

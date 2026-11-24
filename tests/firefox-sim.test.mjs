@@ -13,7 +13,8 @@ test('Firefox background builds the menu and copies without offscreen', async ()
 
   const store = { sync: {}, local: {} }, created = [], tabs = [];
   let clicked, clipboard = '';
-  const area = n => ({ get: async k => (k in store[n] ? { [k]: store[n][k] } : {}), set: async o => Object.assign(store[n], JSON.parse(JSON.stringify(o))), remove: async k => { delete store[n][k]; } });
+  const pick = (o, k) => k == null ? JSON.parse(JSON.stringify(o)) : Object.fromEntries([].concat(k).filter(x => x in o).map(x => [x, JSON.parse(JSON.stringify(o[x]))]));
+  const area = n => ({ get: async k => pick(store[n], k), set: async o => Object.assign(store[n], JSON.parse(JSON.stringify(o))), remove: async k => { for (const x of [].concat(k)) delete store[n][x]; } });
   const browser = {
     runtime: { onInstalled: { addListener() {} }, onStartup: { addListener() {} }, lastError: null, getBrowserInfo: async () => ({ name: 'Firefox' }), getURL: p => 'moz-extension://x/' + p },
     storage: { sync: area('sync'), local: area('local'), onChanged: { addListener() {} } },
@@ -30,7 +31,8 @@ test('Firefox background builds the menu and copies without offscreen', async ()
   assert.equal(created[0].id, 'root');
   await clicked({ menuItemId: 'save-link', linkUrl: 'https://www.linkedin.com/in/jane/' }, { id: 3, index: 0 });
   await ctx.__sl.rebuild();
-  const li = store.sync.data.profiles[0].links[0];
+  const li = (await ctx.SL.store.load()).profiles[0].links[0];
+  assert.equal(store.sync['l_' + li.id].url, li.url, 'saved to sync as its own item');
   assert.equal(li.url, 'https://www.linkedin.com/in/jane');
   assert.ok(created.some(o => o.id === 'c:' + li.id));
   await clicked({ menuItemId: 'c:' + li.id }, { id: 3, index: 0 });
