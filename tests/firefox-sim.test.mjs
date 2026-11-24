@@ -20,8 +20,15 @@ test('Firefox background builds the menu and copies without offscreen', async ()
     i18n: { getMessage: () => '' },
     menus: { removeAll(cb) { created.length = 0; cb(); }, create(o, cb) { created.push(o); cb && cb(); }, onClicked: { addListener(f) { clicked = f; } } },
     action: { setBadgeText() {}, setBadgeBackgroundColor() {} },
-    tabs: { create: async o => { tabs.push(o); } }
+    tabs: { create: async o => { tabs.push(o); }, update: async o => { tabs.push(Object.assign({ updated: true }, o)); } },
+    omnibox: {
+      setDefaultSuggestion(o) { omni.default = o.description; },
+      onInputStarted: { addListener() {} },
+      onInputChanged: { addListener(f) { omni.changed = f; } },
+      onInputEntered: { addListener(f) { omni.entered = f; } }
+    }
   };
+  const omni = {};
   const ctx = vm.createContext({ browser, globalThis: null, navigator: { clipboard: { writeText: async s => { clipboard = s; } } }, console, setTimeout, URL, Blob, TextEncoder });
   ctx.globalThis = ctx;
   for (const f of manifest.background.scripts) vm.runInContext(readFileSync('dist/firefox/' + f, 'utf8'), ctx, { filename: f });
@@ -43,4 +50,20 @@ test('Firefox background builds the menu and copies without offscreen', async ()
   await clicked({ menuItemId: 'o:' + li.id }, { id: 3, index: 0 });
   assert.equal(tabs[0].url, 'https://www.linkedin.com/in/jane');
   assert.equal(tabs[0].openerTabId, 3);
+
+  // address-bar shortcut (omnibox.js) loads in the Firefox background and uses plain text
+  assert.ok(manifest.background.scripts.includes('omnibox.js'));
+  assert.equal(manifest.omnibox.keyword, 'sl');
+  assert.ok(omni.changed && omni.entered, 'omnibox listeners registered');
+  const got = await new Promise(res => omni.changed('link', res));
+  assert.equal(got.length, 1);
+  assert.equal(got[0].content, 'linkedin.com/in/jane');
+  assert.equal(got[0].description, 'omniOpen LinkedIn — linkedin.com/in/jane');
+  assert.ok(!/[<>&]/.test(got[0].description + omni.default), 'Firefox suggestions are plain text');
+  clipboard = '';
+  const r = await ctx.__sl.omniEnter('c jane', 'currentTab');
+  assert.equal(r.act, 'copy');
+  assert.equal(clipboard, 'https://www.linkedin.com/in/jane');
+  await ctx.__sl.omniEnter('link', 'newBackgroundTab');
+  assert.deepEqual({ ...tabs.at(-1) }, { url: 'https://www.linkedin.com/in/jane', active: false });
 });
