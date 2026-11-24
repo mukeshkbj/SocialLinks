@@ -99,7 +99,7 @@ var SL = globalThis.SL || (globalThis.SL = {});
     if (wantsManage) { if (suggestions.length >= MAX) suggestions.pop(); suggestions.push(manage); }
     if (!p.q) return { default: plainMsg('omniUsage', null, rich), suggestions, matches };
     if (!matches.length) return { default: plainMsg('omniNoMatch', p.q, rich), suggestions, matches };
-    return { default: suggestions[0].description, suggestions, matches };
+    return { default: suggestions[0].description, suggestions, matches, topIsDefault: true };
   }
 
   // What Enter does with `text` → {act:'open'|'copy'|'manage'|'none', link?}
@@ -142,7 +142,7 @@ var SL = globalThis.SL || (globalThis.SL = {});
     if (api.omnibox.onInputStarted) api.omnibox.onInputStarted.addListener(() => setDefault(usage()));
     api.omnibox.onInputChanged.addListener((text, cb) => {
       const n = ++seq;
-      suggest(text).then(r => { if (n !== seq) return; setDefault(r.default); cb(r.suggestions); }).catch(() => {});
+      suggest(text).then(r => { if (n !== seq) return; setDefault(r.default); cb(r.topIsDefault ? r.suggestions.slice(1) : r.suggestions); }).catch(() => {});   // the best match is already the default row; don't list it twice
     });
     api.omnibox.onInputEntered.addListener((text, disposition) => { enter(text, disposition).catch(() => {}); });
   }

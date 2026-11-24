@@ -56,10 +56,10 @@ test('Firefox background builds the menu and copies without offscreen', async ()
   assert.equal(manifest.omnibox.keyword, 'sl');
   assert.ok(omni.changed && omni.entered, 'omnibox listeners registered');
   const got = await new Promise(res => omni.changed('link', res));
-  assert.equal(got.length, 1);
-  assert.equal(got[0].content, 'linkedin.com/in/jane');
-  assert.equal(got[0].description, 'omniOpen LinkedIn — linkedin.com/in/jane');
-  assert.ok(!/[<>&]/.test(got[0].description + omni.default), 'Firefox suggestions are plain text');
+  // the single match is the default (top) row and is not repeated in the list below it
+  assert.equal(got.length, 0);
+  assert.equal(omni.default, 'omniOpen LinkedIn — linkedin.com/in/jane');
+  assert.ok(!/[<>&]/.test(omni.default), 'Firefox suggestions are plain text');
   clipboard = '';
   const r = await ctx.__sl.omniEnter('c jane', 'currentTab');
   assert.equal(r.act, 'copy');
