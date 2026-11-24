@@ -1,17 +1,18 @@
-# Social Links 2.0 — browser extension
+# Social Links — browser extension
 
-Your LinkedIn, GitHub and other profile links, one right-click away on any website: open them, copy them into a form, or add new ones. Works in Chrome, Edge, Brave, Opera, Firefox and Safari on Windows, macOS and Linux.
+Your LinkedIn, GitHub and other profile links, one right-click away on any website: paste them straight into a form, open or copy them, or add new ones. Works in Chrome, Edge, Brave, Opera, Firefox and Safari on Windows, macOS and Linux.
 
-**Never reads or changes the websites you visit.** No host permissions, no content scripts, no analytics, no network requests.
+**Never reads the websites you visit.** It only types into a page when you choose **Paste here**, and only into the box you right-clicked. No host permissions, no content scripts, no analytics, no network requests.
 
 ## Demo
 
 [![Social Links demo video: all your links, one right-click](docs/demo/social-links-thumbnail.png)](docs/demo/social-links-demo.mp4)
 
-A 77-second walkthrough ([MP4](docs/demo/social-links-demo.mp4), [captions](docs/demo/social-links-demo.en.srt)): copy and open links from the right-click menu, save a link by right-clicking it, the toolbar panel, profiles, the share card and backup. The source that renders it is in [`docs/demo/source`](docs/demo/source).
+A 77-second walkthrough ([MP4](docs/demo/social-links-demo.mp4), [captions](docs/demo/social-links-demo.en.srt)): paste, copy and open links from the right-click menu, save a link by right-clicking it, the toolbar panel, profiles, the share card and backup. The source that renders it is in [`docs/demo/source`](docs/demo/source).
 
 ## Features
 
+- **Paste straight into forms** — right-click in a text box › Social links › LinkedIn › **Paste here**. Works in plain fields, rich-text editors and fields inside frames, keeps Ctrl+Z, and falls back to copying where a page can't be typed into.
 - **Right-click menu everywhere** — open or copy any saved link; add the link, page or text you right-clicked; add or edit any platform; switch profile.
 - **Built-in platforms** — LinkedIn, GitHub, X, Instagram, YouTube, Facebook, TikTok, Medium, DEV, Stack Overflow, Website, Email — plus **Other link** for any site under your own name, as many as you like.
 - **Smart detection** — right-click a GitHub repo, a LinkedIn post or a YouTube video and it saves the owner's profile. Unknown sites become an Other link named after the site.
@@ -26,12 +27,13 @@ A 77-second walkthrough ([MP4](docs/demo/social-links-demo.mp4), [captions](docs
 
 | Where you right-click | What *Social links* offers |
 |---|---|
+| In a text box | Each saved link › **⤵ Paste here** / ↗ Open / ⧉ Copy |
 | Anywhere | Each saved link › **↗ Open** / **⧉ Copy** (email: copy only) · **+ Add / ✎ Edit ›** each platform · **Profile ›** switch · **Manage links…** |
 | On a link | **+ Add / ✎ Edit › + Add this link** |
 | On empty page space | **+ Add / ✎ Edit › + Add this page** |
 | On selected text | **+ Add / ✎ Edit › + Add "…"** (a URL, domain or email address) |
 
-Toolbar badge after a menu action: **✓** added · **✎** updated · **⧉** copied · **=** already saved · **!** not a valid link.
+Toolbar badge after a menu action: **✓** added or pasted · **✎** updated · **⧉** copied (also shown when a page blocks typing, so you can press Ctrl+V) · **=** already saved · **!** not a valid link.
 
 ## Install
 
@@ -67,9 +69,11 @@ Open the generated Xcode project, **Run**, then enable it in Safari › Settings
 | `storage` | all | save your links (browser sync, local fallback) | none |
 | `offscreen` | Chrome/Edge | a hidden extension page that performs **Copy** from the menu | none |
 | `clipboardWrite` | all | write (never read) the clipboard for **Copy** | "Modify data you copy and paste" |
+| `activeTab` | all | when you choose **Paste here**, lets the extension into *that one tab, that one time* | none |
+| `scripting` | all | types the link into the box you right-clicked (it reads nothing from the page) | none |
 | `favicon` *(optional, off by default)* | Chrome/Edge | real site icons for Other links — only if you click **Show site icons** | "Read the icons of the websites you visit" |
 
-Chrome reports exactly one install warning for this extension: *Modify data you copy and paste* (verified with `chrome.management.getPermissionWarningsByManifest`). The extension cannot read your clipboard, your tabs, your history or any page content.
+Chrome reports exactly one install warning for this extension: *Modify data you copy and paste* (verified with `chrome.management.getPermissionWarningsByManifest`). Adding Paste (`activeTab` + `scripting`) did not add a warning, because there are no host permissions: the extension can only reach a page in the moment you pick **Paste here** on it. It cannot read your clipboard, your tabs, your history or any page content.
 
 ## Develop
 
@@ -81,7 +85,7 @@ npm run test:e2e     # loads dist/chromium in real Chrome with Playwright
 ```
 Source is in `src/` (plain JavaScript, no build step, no dependencies); `manifests/` holds the per-browser manifests; strings are in `src/_locales/en/messages.json` — copy that folder to e.g. `_locales/fr/` to translate.
 
-## Testing status (v2.0.1)
+## Testing status (v2.1.0)
 
 | Check | Result |
 |---|---|
@@ -89,9 +93,10 @@ Source is in `src/` (plain JavaScript, no build step, no dependencies); `manifes
 | Regression tests for the 2.0.1 fixes: no first-run overwrite, accented usernames, tracking parameters, duplicate URLs, YouTube channels, Medium subdomains | 7/7 pass |
 | QR encoder decoded by OpenCV (versions 1–19, levels M and L, incl. Unicode) | 20/20 pass |
 | Real Chrome (Playwright, unpacked extension): permissions and install warnings, menu structure, add/update/copy/open from the menu, stale-ID safety, profile switching, popup add/edit/validate, + and ✎ tiles, keyboard reorder, remove/undo, search, profiles, share card + vCard + QR image, backup/restore with preview, deep links, accessibility names, and the 2.0.1 fixes (menu save while a form is open, editing a link deleted elsewhere, undo after a profile is deleted) | 51/51 pass |
-| Simulated Firefox background (fake `browser` API) | pass |
+| Paste in real Chrome (`tests/e2e-paste.cjs`): plain, email, textarea at the cursor, Ctrl+Z undo, rich-text, framework input events, iframes, read-only fields and blocked pages fall back to copy | 13/13 pass |
+| Simulated Firefox background (fake `browser` API), including Paste | pass |
 
 **Not tested:**
 - **Real Firefox and Safari.** Neither was available in the build environment. Run `npm run firefox:lint` and `npm run firefox:run` to check Firefox.
-- **Clicking the native right-click menu itself.** Browsers don't let automation open their own menus, so the tests call the same handler the menu uses and check the menu that was built.
+- **Clicking the native right-click menu itself.** Browsers don't let automation open their own menus, so the tests call the same handler the menu uses and check the menu that was built. For Paste, a real right-click grants `activeTab`; the test instead loads a test-only copy that may reach the local test page.
 - **Phone scanning of the QR code.** Large cards (around 15+ links) produce dense codes; the popup warns and suggests the vCard instead.

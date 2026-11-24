@@ -8,7 +8,7 @@ Every application asks for the same profile links.
 
 3
 00:00:08,900 --> 00:00:15,500
-Right-click › Social links › LinkedIn › Copy. Then paste.
+Right-click in the box › Social links › LinkedIn › Paste here.
 
 4
 00:00:15,700 --> 00:00:20,600
@@ -56,7 +56,7 @@ Back up to a file. Restore with a preview, then merge or replace.
 
 15
 00:01:04,000 --> 00:01:10,200
-Private by design: never reads or changes the websites you visit. No tracking, no network requests.
+Private by design: only types into a page when you choose Paste, never reads it. No tracking, no network requests.
 
 16
 00:01:10,500 --> 00:01:16,500
