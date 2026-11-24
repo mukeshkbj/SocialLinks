@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: Unit + regression + simulated Firefox
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node build.mjs
+      - run: node --test tests/unit.test.mjs tests/regressions.test.mjs tests/firefox-sim.test.mjs
+
+  chrome-e2e:
+    name: Real Chromium e2e (Playwright)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save --no-audit --no-fund playwright
+          npx playwright install --with-deps chromium
+      - run: node build.mjs
+      - name: e2e (popup, menu, copy, open, profiles, share, backup)
+        env:
+          SHOTS: ${{ runner.temp }}/e2e-shots
+        run: |
+          mkdir -p "$SHOTS"
+          node tests/e2e.cjs
+      - name: e2e Paste here
+        run: node tests/e2e-paste.cjs
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chrome-e2e-screenshots
+          path: ${{ runner.temp }}/e2e-shots
+          if-no-files-found: warn
+
+  firefox:
+    name: Real Firefox (web-ext lint + Selenium)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: node build.mjs
+      - name: web-ext lint (fails on errors, reports warnings)
+        run: |
+          npx --yes web-ext@8 lint --source-dir dist/firefox --output json --pretty > lint.json || status=$?
+          node -e '
+            const r = JSON.parse(require("fs").readFileSync("lint.json", "utf8"));
+            const s = r.summary || {};
+            console.log(`web-ext lint: ${s.errors} errors, ${s.warnings} warnings, ${s.notices} notices`);
+            for (const k of ["errors", "warnings", "notices"]) for (const m of r[k] || [])
+              console.log(`${k.slice(0, -1).toUpperCase()} ${m.code} ${m.file || ""}: ${m.message}`);
+            for (const m of r.warnings || []) console.log(`::warning file=${m.file || "manifest.json"}::${m.code}: ${m.message}`);
+            for (const m of r.errors || []) console.log(`::error file=${m.file || "manifest.json"}::${m.code}: ${m.message}`);
+            process.exit(s.errors ? 1 : 0);'
+          exit ${status:-0}
+      - name: Firefox and geckodriver versions
+        run: |
+          firefox --version
+          geckodriver --version | head -1
+      - run: pip install selenium
+      - name: Real Firefox test (temporary add-on)
+        run: python tests/firefox-real.py
+      - name: Upload Firefox screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefox-screenshots
+          path: ${{ runner.temp }}/ff-shots
+          if-no-files-found: ignore
