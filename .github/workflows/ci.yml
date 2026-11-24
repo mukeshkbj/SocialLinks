@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: 20
       - run: node build.mjs
-      - run: node --test tests/unit.test.mjs tests/regressions.test.mjs tests/firefox-sim.test.mjs
+      - run: node --test tests/unit.test.mjs tests/regressions.test.mjs tests/firefox-sim.test.mjs tests/sync.test.mjs tests/omnibox.test.mjs tests/popup-features.test.mjs
 
   chrome-e2e:
     name: Real Chromium e2e (Playwright)
@@ -45,6 +45,10 @@ jobs:
           node tests/e2e.cjs
       - name: e2e Paste here
         run: node tests/e2e-paste.cjs
+      - name: e2e address bar (sl)
+        run: node tests/e2e-omnibox.cjs
+      - name: e2e Other-link suggestions and main links
+        run: node tests/e2e-popup.cjs
       - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@v4

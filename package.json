@@ -14,7 +14,7 @@
     "firefox:sign": "npx web-ext sign --source-dir dist/firefox --channel unlisted",
     "test:popup": "node build.mjs && node --test tests/popup-features.test.mjs && node tests/e2e-popup.cjs",
     "release": "node build.mjs && npx web-ext lint --source-dir dist/firefox",
-    "store:assets": "node build.mjs && node store/release/make-assets.cjs"
+    "store:assets": "node build.mjs && node store/release/make-assets.cjs \"$CHROME\""
   },
   "devDependencies": {
     "playwright": "^1.50.0"
