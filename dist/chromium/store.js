@@ -61,12 +61,17 @@ var SL = globalThis.SL || (globalThis.SL = {});
     let d = null;
     try { d = (await api.storage[m].get(KEY))[KEY]; } catch (e) {}
     d = clean(d);
-    if (!d) {                                           // first run, or upgrade from v1 {links:[…]}
+    if (!d) {
+      // Nothing saved yet. On a new computer the browser may still be downloading synced data,
+      // so don't write empty defaults here — they could replace the user's links everywhere.
+      // Defaults stay in memory until the user changes something. Only a 1.0 upgrade is saved.
       let old = [];
       try { const r = await api.storage.sync.get('links'); old = Array.isArray(r.links) ? r.links : []; } catch (e) {}
       d = clean(fresh(old)) || fresh();
-      await save(d);
-      try { await api.storage.sync.remove('links'); } catch (e) {}
+      if (old.length) {
+        await save(d);
+        try { await api.storage.sync.remove('links'); } catch (e) {}
+      }
     }
     return d;
   }
@@ -113,7 +118,7 @@ var SL = globalThis.SL || (globalThis.SL = {});
       if (!tp) { tp = { id: SL.newId(), name: ip.name, owner: ip.owner, links: [] }; out.profiles.push(tp); stats.profiles++; }
       if (!tp.owner && ip.owner) tp.owner = ip.owner;
       for (const l of ip.links) {
-        const dupUrl = tp.links.some(x => x.url === l.url);
+        const dupUrl = tp.links.some(x => SL.sameUrl(x.url, l.url));
         const dupPlat = !SL.platform(l.p).many && tp.links.some(x => x.p === l.p);
         if (dupUrl || dupPlat) { stats.skipped++; continue; }
         tp.links.push(Object.assign({}, l, { id: SL.newId() })); stats.added++;

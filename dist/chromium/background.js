@@ -98,8 +98,12 @@ async function copyText(text) {
       const r = await api.runtime.sendMessage({ target: 'sl-offscreen', type: 'copy', text });
       return !!(r && r.ok);
     }
-    await navigator.clipboard.writeText(text);            // Firefox background page (clipboardWrite)
-    return true;
+    try { await navigator.clipboard.writeText(text); return true; }   // Firefox background page (clipboardWrite)
+    catch (e) {                                                        // older Firefox: execCommand in the background page
+      if (typeof document === 'undefined') return false;
+      const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+      const ok = document.execCommand('copy'); ta.remove(); return ok;
+    }
   } catch (e) { return false; }
 }
 
@@ -108,7 +112,7 @@ async function saveFromMenu(raw, tab) {
   const item = SL.fromAnything(raw);
   if (!item) return badge(tab, '!', BAD);
   const d = await getData(), prof = activeProfile(d);
-  if (prof.links.some(l => l.url === item.url)) return badge(tab, '=', MUTED);
+  if (prof.links.some(l => SL.sameUrl(l.url, item.url))) return badge(tab, '=', MUTED);
   const i = SL.platform(item.p).many ? -1 : prof.links.findIndex(l => l.p === item.p);
   if (i >= 0) { item.id = prof.links[i].id; prof.links[i] = item; await setData(d); return badge(tab, '✎', OK); }
   item.id = SL.newId(); prof.links.push(item);

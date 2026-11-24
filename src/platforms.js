@@ -8,10 +8,12 @@ SL.PLATFORMS = [
   { id: 'github', name: 'GitHub', ab: 'GH', c: '#24292f', host: ['github.com'], pre: 'github.com/', build: u => 'https://github.com/' + u, user: /^\/([^/?#]+)/, reserved: ['features', 'pricing', 'login', 'about', 'orgs', 'settings', 'marketplace', 'explore', 'topics', 'collections', 'sponsors', 'notifications'] },
   { id: 'x', name: 'X (Twitter)', ab: 'X', c: '#111111', host: ['x.com', 'twitter.com'], pre: 'x.com/', build: u => 'https://x.com/' + u, user: /^\/([^/?#]+)/, reserved: ['home', 'explore', 'search', 'i', 'settings', 'notifications', 'messages', 'intent', 'share'] },
   { id: 'instagram', name: 'Instagram', ab: 'IG', c: '#c13584', host: ['instagram.com'], pre: 'instagram.com/', build: u => 'https://www.instagram.com/' + u, user: /^\/([^/?#]+)/, reserved: ['p', 'reel', 'reels', 'explore', 'accounts', 'stories', 'direct'] },
-  { id: 'youtube', name: 'YouTube', ab: 'YT', c: '#cc0000', host: ['youtube.com', 'youtu.be'], pre: 'youtube.com/@', build: u => 'https://www.youtube.com/@' + u, user: /^\/@([^/?#]+)/ },
+  { id: 'youtube', name: 'YouTube', ab: 'YT', c: '#cc0000', host: ['youtube.com', 'youtu.be'], pre: 'youtube.com/@', build: u => 'https://www.youtube.com/@' + u, user: /^\/@([^/?#]+)/,
+    alt: (u) => { const m = u.pathname.match(/^\/(channel|c|user)\/[^/?#]+/); return m && u.origin + m[0]; } },
   { id: 'facebook', name: 'Facebook', ab: 'f', c: '#1877f2', host: ['facebook.com', 'fb.com'], pre: 'facebook.com/', build: u => 'https://www.facebook.com/' + u, user: /^\/([^/?#]+)/, reserved: ['groups', 'events', 'watch', 'marketplace', 'pages', 'photo.php', 'profile.php', 'share', 'login'] },
   { id: 'tiktok', name: 'TikTok', ab: 'TT', c: '#010101', host: ['tiktok.com'], pre: 'tiktok.com/@', build: u => 'https://www.tiktok.com/@' + u, user: /^\/@([^/?#]+)/ },
-  { id: 'medium', name: 'Medium', ab: 'M', c: '#292929', host: ['medium.com'], pre: 'medium.com/@', build: u => 'https://medium.com/@' + u, user: /^\/@([^/?#]+)/ },
+  { id: 'medium', name: 'Medium', ab: 'M', c: '#292929', host: ['medium.com'], pre: 'medium.com/@', build: u => 'https://medium.com/@' + u, user: /^\/@([^/?#]+)/,
+    alt: (u, host) => host !== 'medium.com' && host.endsWith('.medium.com') && u.origin + '/' },
   { id: 'devto', name: 'DEV', ab: 'DEV', c: '#3b49df', host: ['dev.to'], pre: 'dev.to/', build: u => 'https://dev.to/' + u, user: /^\/([^/?#]+)/, reserved: ['t', 'search', 'enter', 'settings', 'top', 'latest'] },
   { id: 'stackoverflow', name: 'Stack Overflow', ab: 'SO', c: '#c75d0e', host: ['stackoverflow.com'], url: true },
   { id: 'website', name: 'Website', ab: 'www', c: '#00685a', url: true },
@@ -20,6 +22,25 @@ SL.PLATFORMS = [
 ];
 
 SL.EMAIL_RE = /^[^\s@<>()]+@[^\s@<>()]+\.[^\s@<>()]{2,}$/;
+SL.USER_RE = /^[\p{L}\p{N}\p{M}_.\-]{1,100}$/u;   // usernames in any script, e.g. josé-garcía
+
+// Remove tracking parameters (utm_*, fbclid, gclid …) but keep meaningful ones.
+SL.TRACKING = /^(utm_.*|fbclid|gclid|dclid|gbraid|wbraid|msclkid|mc_cid|mc_eid|igsh|igshid|si|ref|ref_src|ref_url|trk|trkinfo|_hsenc|_hsmi|mkt_tok|yclid|twclid)$/i;
+SL.cleanUrl = function (u) {
+  const out = new URL(u.href);
+  for (const k of [...out.searchParams.keys()]) if (SL.TRACKING.test(k)) out.searchParams.delete(k);
+  return out.href.replace(/\?$/, '');
+};
+// Same address written differently: http/https, www., letter case of the host, trailing slash.
+SL.urlKey = function (s) {
+  s = String(s || '');
+  if (/^mailto:/i.test(s)) return s.toLowerCase();
+  try {
+    const u = new URL(s);
+    return SL.cleanHost(u.hostname) + (u.port ? ':' + u.port : '') + decodeURIComponent(u.pathname).replace(/\/+$/, '') + u.search;
+  } catch (e) { return s; }
+};
+SL.sameUrl = (a, b) => SL.urlKey(a) === SL.urlKey(b);
 SL.platform = id => SL.PLATFORMS.find(p => p.id === id) || SL.PLATFORMS.find(p => p.id === 'custom');
 SL.newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 SL.cleanHost = h => h.toLowerCase().replace(/^(www|m|mobile)\./, '');
@@ -47,13 +68,16 @@ SL.fromAnything = function (raw) {
     if (!p.host || !SL.onHost(host, p.host)) continue;
     const m = p.user && u.pathname.match(p.user);
     if (m) {
-      const name = decodeURIComponent(m[1]);
-      if (!(p.reserved || []).includes(name.toLowerCase()) && /^[\w.\-]{1,100}$/.test(name)) return { p: p.id, v: name, url: p.build(name) };
+      let name = m[1]; try { name = decodeURIComponent(name); } catch (e) {}
+      if (!(p.reserved || []).includes(name.toLowerCase()) && SL.USER_RE.test(name)) return { p: p.id, v: name, url: p.build(name) };
     }
-    if (p.url) return { p: p.id, v: u.href, url: u.href };
+    const alt = p.alt && p.alt(u, host);
+    if (alt) return { p: p.id, v: alt, url: alt };
+    if (p.url) { const c = SL.cleanUrl(u); return { p: p.id, v: c, url: c }; }
     break; // a known platform's non-profile page → save as an Other link
   }
-  return { p: 'custom', v: u.href, url: u.href, label: host };
+  const c = SL.cleanUrl(u);
+  return { p: 'custom', v: c, url: c, label: host };
 };
 
 // What the user typed in the popup for platform p → {v, url} or {e: messageKey}.
@@ -76,11 +100,12 @@ SL.validate = function (p, raw) {
       if (auto && auto.p === p.id) return { v: auto.v, url: auto.url };
       return { e: 'errNotProfile', sub: p.name };
     }
-    return { v: u.href, url: u.href };
+    const c = SL.cleanUrl(u);
+    return { v: c, url: c };
   }
   if (p.url) return { e: 'errNeedUrl' };
   v = v.replace(/^@/, '').replace(/\/+$/, '');
-  if (!/^[\w.\-]{1,100}$/.test(v)) return { e: 'errUsername' };
+  if (!SL.USER_RE.test(v)) return { e: 'errUsername' };
   return { v, url: p.build(v) };
 };
 
