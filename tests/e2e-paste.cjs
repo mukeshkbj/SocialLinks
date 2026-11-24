@@ -40,9 +40,9 @@ const FRAME = `<!doctype html><meta charset="utf-8"><input id="inner" type="url"
   });
   const sw = ctx.serviceWorkers()[0] || await ctx.waitForEvent('serviceworker');
   await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: URL.slice(0, -1) });
-  await sw.evaluate(() => chrome.storage.sync.set({ data: { v: 2, active: 'work', profiles: [{ id: 'work', name: 'Work', owner: '', links: [
+  await sw.evaluate(() => SL.store.save({ v: 2, active: 'work', profiles: [{ id: 'work', name: 'Work', owner: '', links: [
     { id: 'li01', p: 'linkedin', v: 'jane', url: 'https://www.linkedin.com/in/jane' },
-    { id: 'em01', p: 'email', v: 'jane@example.com', url: 'mailto:jane@example.com' }] }] } }));
+    { id: 'em01', p: 'email', v: 'jane@example.com', url: 'mailto:jane@example.com' }] }] }));
   await sw.evaluate(() => globalThis.__sl.rebuild());
 
   // menu shape: Paste is offered in text boxes, first in each link's submenu

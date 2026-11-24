@@ -18,7 +18,7 @@ const DEMO = { v: 2, active: 'work', profiles: [
     args: ['--headless=new', '--disable-features=DisableLoadExtensionCommandLineSwitch', `--disable-extensions-except=${EXT}`, `--load-extension=${EXT}`] });
   const sw = ctx.serviceWorkers()[0] || await ctx.waitForEvent('serviceworker');
   const id = sw.url().split('/')[2], URL = `chrome-extension://${id}/popup.html`;
-  const seed = d => sw.evaluate(d => chrome.storage.sync.set({ data: d }), d);
+  const seed = d => sw.evaluate(d => SL.store.save(d), d);
   await seed(DEMO);
   const pg = await ctx.newPage();
   // popup is 400px wide with body padding; shoot only the body box
