@@ -17,6 +17,7 @@
       "platforms.js",
       "i18n.js",
       "store.js",
+      "omnibox.js",
       "background.js"
     ]
   },
@@ -28,6 +29,9 @@
       "32": "icons/icon32.png",
       "48": "icons/icon48.png"
     }
+  },
+  "omnibox": {
+    "keyword": "sl"
   },
   "options_ui": {
     "page": "popup.html",

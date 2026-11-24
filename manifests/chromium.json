@@ -26,6 +26,9 @@
       "48": "icons/icon48.png"
     }
   },
+  "omnibox": {
+    "keyword": "sl"
+  },
   "options_ui": {
     "page": "popup.html",
     "open_in_tab": true

@@ -1,7 +1,7 @@
 // Social Links — background (Chrome/Edge: service worker; Firefox: background scripts).
 // Never reads or changes web pages: the browser hands us the URL of what you right-clicked.
 if (typeof SL === 'undefined' || !SL.store) {
-  if (typeof importScripts === 'function') importScripts('platforms.js', 'i18n.js', 'store.js');
+  if (typeof importScripts === 'function') importScripts('platforms.js', 'i18n.js', 'store.js', 'omnibox.js');
 }
 const api = (typeof browser !== 'undefined' && browser.runtime) ? browser : chrome;
 const MENU = api.contextMenus || api.menus;
@@ -185,5 +185,8 @@ async function onClick(info, tab) {
 }
 MENU.onClicked.addListener((info, tab) => { onClick(info, tab); });
 
+// Shared with the address-bar shortcut (omnibox.js)
+SL.bg = { getData, copyText, badge, OK, MUTED, BAD };
+
 // Test hook (no effect in normal use)
-globalThis.__sl = { onClick, menu: () => building.then(() => model), data: getData, rebuild, insertIntoField };
+globalThis.__sl = Object.assign({ onClick, menu: () => building.then(() => model), data: getData, rebuild, insertIntoField }, SL.omni && SL.omni.hooks);

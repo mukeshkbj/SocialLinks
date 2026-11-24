@@ -337,5 +337,29 @@
  },
  "menuPaste": {
   "message": "Paste here"
+ },
+ "omniUsage": {
+  "message": "Type a link name to open it, copy <name> to copy it, or manage to edit your links",
+  "description": "Address bar (after typing sl and a space): default hint"
+ },
+ "omniOpen": {
+  "message": "Open $1",
+  "description": "Address bar suggestion; $1 is the link name and address"
+ },
+ "omniCopy": {
+  "message": "Copy $1",
+  "description": "Address bar suggestion; $1 is the link name and address"
+ },
+ "omniManage": {
+  "message": "$1: open Social Links to add, edit or reorder links",
+  "description": "Address bar suggestion; $1 is the word manage"
+ },
+ "omniNoMatch": {
+  "message": "No link matches \"$1\". Try a site name, copy <name>, or manage",
+  "description": "Address bar: nothing matched what was typed ($1)"
+ },
+ "omniNoLinks": {
+  "message": "No links in $1 yet. Press Enter to add some",
+  "description": "Address bar: active profile ($1) has no links"
  }
 }
