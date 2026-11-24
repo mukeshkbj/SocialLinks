@@ -36,7 +36,7 @@ test('non-profile pages and unknown sites become Other links', () => {
   assert.equal(SL.fromAnything('https://github.com/features/actions').p, 'custom');
   assert.equal(SL.fromAnything('https://www.instagram.com/p/abc123/').p, 'custom');
   const k = SL.fromAnything('https://www.kaggle.com/mukesh');
-  assert.equal(k.p, 'custom'); assert.equal(k.label, 'kaggle.com');
+  assert.equal(k.p, 'custom'); assert.equal(k.label, 'Kaggle');   // well-known site name from SL.SITES
   assert.equal(SL.fromAnything('https://stackoverflow.com/users/1/x').p, 'stackoverflow');
 });
 

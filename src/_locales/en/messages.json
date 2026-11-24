@@ -153,7 +153,7 @@
   "message": "How should it be applied?"
  },
  "phName": {
-  "message": "e.g. Portfolio, Kaggle, Behance"
+  "message": "Search sites (Kaggle…) or type any name"
  },
  "phSearch": {
   "message": "Search links…"
@@ -337,5 +337,32 @@
  },
  "menuPaste": {
   "message": "Paste here"
+ },
+ "lblSiteList": {
+  "message": "Well-known sites"
+ },
+ "srSiteCount": {
+  "message": "$1 suggestions. Use up and down arrows to choose."
+ },
+ "errPhone": {
+  "message": "Enter the phone number with its country code, e.g. 447700900123."
+ },
+ "btnMainX": {
+  "message": "Show $1 on the share card"
+ },
+ "tipMain": {
+  "message": "Main link: shown on the share card"
+ },
+ "toastMainOn": {
+  "message": "$1 is on the share card."
+ },
+ "toastMainOff": {
+  "message": "$1 is no longer on the share card."
+ },
+ "mainCount": {
+  "message": "$1 main link(s) on this card. Press ★ next to a link to add or remove it."
+ },
+ "mainNone": {
+  "message": "No main links on this card yet. Press ☆ next to a link in your list to put it on the card."
  }
 }

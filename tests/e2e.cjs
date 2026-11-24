@@ -68,7 +68,7 @@ const ok = (cond, name) => { if (cond) { pass++; console.log('PASS', name); } el
   await click({ menuItemId: 'save-link', linkUrl: 'javascript:alert(1)' });
   d = await data();
   const W = d.profiles[0].links;
-  ok(W.length === 3 && W.some(l => l.p === 'email') && W.some(l => l.p === 'custom' && l.label === 'kaggle.com'), 'selection email + page as Other link saved; javascript: rejected');
+  ok(W.length === 3 && W.some(l => l.p === 'email') && W.some(l => l.p === 'custom' && l.label === 'Kaggle'), 'selection email + page as Other link saved; javascript: rejected');
   const em = W.find(l => l.p === 'email');
   m = await menu();
   ok(m.some(x => x.id === 'c:' + em.id && x.parentId === 'l:' + em.id) && m.some(x => x.id === 'v:' + em.id) && !m.some(x => x.id === 'o:' + em.id), 'email can be copied or pasted, never opened');
