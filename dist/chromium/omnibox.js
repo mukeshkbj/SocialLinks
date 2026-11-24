@@ -26,7 +26,9 @@ var SL = globalThis.SL || (globalThis.SL = {});
     return { cmd: 'open', q: raw.trim() };
   }
   const tokens = q => String(q || '').toLowerCase().split(/\s+/).filter(Boolean);
-  const fields = l => [SL.linkName(l), SL.platform(l.p).name, SL.display(l)];
+  // Other links match on their own name and address only: the generic platform name "Other link"
+  // would otherwise make every one of them match words like "lin" or "link".
+  const fields = l => [SL.linkName(l), SL.platform(l.p).many ? '' : SL.platform(l.p).name, SL.display(l)];
 
   // exact > prefix > start of a word > anywhere
   function fieldScore(f, tok) {

@@ -9,6 +9,8 @@
 ### Changed
 - **Safer syncing:** links are stored one per sync item instead of one document, so edits made on two computers at about the same time both survive. Deletions are kept for 30 days so an out-of-date computer can't bring a link back. The profile you're using is now chosen per computer. Data from 2.x is migrated automatically on first run. **Update every computer to 2.2**: a computer still on 2.x won't see changes made on 2.2.
 - The address bar no longer lists its top match twice.
+- The address bar no longer matches every Other link on words like "lin" (from the generic name "Other link"); Other links match on their own name and address.
+- Demo video re-recorded for 2.2: Paste here, the `sl` address-bar shortcut, site suggestions and ★ main links (1:35).
 
 ### Fixed
 - A load that started before a save could put older data back into the background's memory.

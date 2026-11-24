@@ -80,6 +80,16 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:#06221d;font-fam
 #cursor{position:absolute;width:34px;height:48px;z-index:40;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35))}
 #click{position:absolute;width:56px;height:56px;border-radius:50%;border:3px solid #3fd1b6;z-index:39;transform:translate(-50%,-50%)}
 #fade{position:absolute;inset:0;background:#06221d;z-index:50;pointer-events:none}
+/* address bar keyword mode + suggestion dropdown (drawn; texts are the extension's real suggestions) */
+#url.focus{background:#fff;box-shadow:0 0 0 2px #1d6fd6 inset}
+.chip{display:inline-flex;align-items:center;gap:8px;background:#e3f2ef;color:#00685a;border-radius:8px;padding:3px 10px;margin-right:10px;font-weight:600;font-size:17px}
+.chip img{width:18px;height:18px}
+.caretU{display:inline-block;width:2px;height:22px;background:#121816;margin-left:1px;vertical-align:middle}
+#omnidrop{position:absolute;left:324px;top:96px;width:1060px;background:#fff;border-radius:0 0 16px 16px;box-shadow:0 18px 40px -10px rgba(0,0,0,.35),0 0 0 1px #dfe5e3;padding:8px 0;z-index:16;opacity:0}
+.orow{height:52px;display:flex;align-items:center;gap:16px;padding:0 22px;font-size:19px;color:#2b3331;white-space:nowrap;overflow:hidden}
+.orow.on{background:#e8eeec}
+.orow img{width:22px;height:22px;flex:none}
+.orow b{font-weight:700;color:#121816}.orow .dm{color:#8a9592}.orow .ul{color:#00685a}
 #key{position:absolute;z-index:41;background:#121816;color:#fff;font:700 30px Inter;border-radius:12px;padding:12px 20px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
 </style></head>
 <body>
@@ -110,9 +120,10 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:#06221d;font-fam
         <p>Robotics engineer in training. Hackathons most weekends, write-ups on the blog, code on GitHub.</p>
         <div class="lk"><a>Read the blog</a><a class="o" id="xLink">Follow me on X · @alexmorgan_dev</a><a class="o">Email me</a></div></div>
     </div>
-    <div class="pg" id="pNew"><div><div>morgan.dev</div><p>Opened from Social links › Portfolio › Open</p></div></div>
+    <div class="pg" id="pNew"><div><div id="pnTitle">morgan.dev</div><p id="pnSub">Opened from Social links › Portfolio › Open</p></div></div>
   </div>
   <div id="popup"></div>
+  <div id="omnidrop"></div>
 </div>
 
 <div class="menu" id="m0"></div><div class="menu" id="m1"></div><div class="menu" id="m2"></div>
@@ -124,7 +135,7 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:#06221d;font-fam
   <div class="rows">
     <div class="row"><i class="n">✕</i>Only types into a page when you choose Paste. Never reads it</div>
     <div class="row"><i class="n">✕</i>No tracking, no analytics, no network requests</div>
-    <div class="row"><i class="y">✓</i>Links sync through your own browser account</div></div>
+    <div class="row"><i class="y">✓</i>Syncs link by link through your own browser account</div></div>
   <div class="warn"><div><small>Chrome's only install warning</small>“Modify data you copy and paste” — for Copy</div></div></div>
 <div class="card" id="cEnd"><img class="logo" src="shots/icon.png" alt=""><h1 style="font-size:100px">Social Links</h1>
   <h2>Free and open source.</h2><div class="url">github.com/mukeshkbj/SocialLinks</div>
@@ -143,9 +154,9 @@ const ease = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 const seg = (t, a, b) => ease(clamp((t - a) / (b - a)));
 const lerp = (a, b, k) => a + (b - a) * k;
 const ICON = '<img src="shots/icon.png" alt="">';
-const POP = { a: 'a-list', b: 'b-grid', c: 'c-other-form', d: 'd-added', f: 'f-personal', g: 'g-share', h: 'h-restore' };
-const POPY = { c: 130 };   // scroll offset (css px) so the Other-link form is in view
-const POPH = { a: 572, b: 912, c: 1108, d: 630, f: 410, g: 1108, h: 466 };   // css px at 400 wide
+const POP = { a: 'a-list', b: 'b-grid', cc: 'c-combo', cp: 'c-picked', d: 'd-added', j: 'j-star', f: 'f-personal', g: 'g-share', h: 'h-restore' };
+const POPY = { cc: 200, cp: 200 };   // scroll offset (css px) so the Other-link form is in view
+const POPH = { a: 572, b: 912, cc: 1154, cp: 1108, d: 627, j: 630, f: 410, g: 1153, h: 466 };   // css px at 400 wide
 
 // ---------- menus (titles match the extension's real menu for this demo profile) ----------
 const EDIT_MENU = [['Undo'], ['Redo'], '-', ['Cut'], ['Copy'], ['Paste'], ['Select all'], '-', ['Social links', ICON, true], '-', ['Inspect']];
@@ -182,7 +193,9 @@ const center = id => { const r = $(id).getBoundingClientRect(); return { x: r.le
 
 // ---------- base state ----------
 function reset() {
-  for (const id of ['cTitle', 'cPriv', 'cEnd', 'key', 'click', 'm0', 'm1', 'm2']) $(id).style.opacity = 0;
+  for (const id of ['cTitle', 'cPriv', 'cEnd', 'key', 'click', 'm0', 'm1', 'm2', 'omnidrop']) $(id).style.opacity = 0;
+  $('url').className = '';
+  $('pnTitle').textContent = 'morgan.dev'; $('pnSub').textContent = 'Opened from Social links › Portfolio › Open';
   $('win').style.opacity = 1; $('win').style.transform = '';
   $('cap').innerHTML = ''; $('cap').style.opacity = 1; $('fade').style.opacity = 0;
   $('popup').style.opacity = 0; $('popup').innerHTML = '';
@@ -298,6 +311,45 @@ S.push({ name: 'open', dur: 5.4, draw(t) {
   fadeEdges(t, 5.4, .3, .35);
 } });
 
+
+// real suggestions captured from the extension (shots/omni.json): Chrome markup → HTML
+const OMNI = window.OMNI || {};
+const omHtml = d => String(d).replace(/<match>/g, '<b>').replace(/<\/match>/g, '</b>').replace(/<dim>/g, '<span class="dm">').replace(/<\/dim>/g, '</span>').replace(/<url>/g, '<span class="ul">').replace(/<\/url>/g, '</span>');
+function omnibox(typed, show) {
+  $('url').className = 'focus';
+  const kw = typed.startsWith('sl ');
+  const q = kw ? typed.slice(3) : typed;
+  $('url').innerHTML = (kw ? '<span class="chip"><img src="shots/icon.png" alt="">Social links</span>' : '') + '<span>' + q.replace(/ /g, '&nbsp;') + '</span><span class="caretU"></span>';
+  const r = kw && OMNI[q];
+  const d = $('omnidrop');
+  if (!r || !show) { d.style.opacity = 0; return; }
+  const rows = [r.default].concat((r.suggestions || []).slice(1).map(x => x.description)).slice(0, 6);   // top match isn't repeated
+  const ur = $('url').getBoundingClientRect(), wr = $('win').getBoundingClientRect();   // line up with the address bar
+  d.style.left = (ur.left - wr.left) + 'px'; d.style.width = ur.width + 'px'; d.style.top = (ur.bottom - wr.top - 4) + 'px';
+  d.innerHTML = rows.map((x, i) => `<div class="orow${i === 0 ? ' on' : ''}"><img src="shots/icon.png" alt=""><span>${omHtml(x)}</span></div>`).join('');
+  d.style.opacity = 1;
+}
+const typeAt = (t, text, a, step) => text.slice(0, Math.max(0, Math.min(text.length, Math.floor((t - a) / step) + 1)));
+
+S.push({ name: 'omnibox', dur: 9.5, draw(t) {
+  const opened = t >= 3.55 && t < 4.9;
+  page(opened ? 'pNew' : 'pSite', opened ? '<span>linkedin.com/in/alex-morgan-dev</span>' : '<span>morgan.dev</span>', opened ? 'LinkedIn' : 'Alex Morgan — morgan.dev', opened ? '#0a66c2' : '#101418');
+  if (opened) { $('pnTitle').textContent = 'linkedin.com/in/alex-morgan-dev'; $('pnSub').textContent = 'Opened from the address bar: sl lin ⏎'; }
+  const u = center('url');
+  cursorPath(t, [[0, 1300, 600], [.45, u.r.left + 260, u.y + 4], [9.5, u.r.left + 262, u.y + 6]]);
+  if (t > .7) $('cursor').style.opacity = 0;          // typing: pointer hides, like a real browser
+  clickRing(t, .5, u.r.left + 260, u.y);
+  if (t >= .6 && t < 3.55) omnibox(t < 1.3 ? typeAt(t, 'sl', .7, .18) : 'sl ' + typeAt(t, 'lin', 1.6, .3), t >= 1.6);
+  if (t >= 5.1 && t < 7.6) omnibox(t < 5.6 ? typeAt(t, 'sl', 5.15, .18) : 'sl ' + typeAt(t, 'c git', 5.8, .22), t >= 5.8);
+  if (t >= 7.6) { page('pSite', '<span>morgan.dev</span>', 'Alex Morgan — morgan.dev', '#101418'); }
+  const key = (at, label) => { if (t > at && t < at + .8) { const k = $('key'); k.textContent = label; k.style.left = (u.r.right - 230) + 'px'; k.style.top = (u.y + 90) + 'px'; k.style.opacity = seg(t, at, at + .1) * (1 - seg(t, at + .6, at + .8)); } };
+  key(1.25, 'Space'); key(3.0, 'Enter'); key(5.55, 'Space'); key(7.2, 'Enter');
+  badge(t, 7.45, '⧉', '#00685a');
+  caption(t, t < 4.9 ? 'No mouse needed: type <em>sl</em>, a space and a name in the address bar.' : '<em>sl c github</em> copies the link instead.', .2);
+  if (t > 4.6 && t < 5.2) $('cap').style.opacity = 1 - seg(t, 4.6, 4.8) + seg(t, 4.9, 5.15);
+  fadeEdges(t, 9.5, .3, .35);
+} });
+
 S.push({ name: 'add', dur: 8, draw(t) {
   page('pSite', '<span>morgan.dev</span>', 'Alex Morgan — morgan.dev', '#101418');
   const x = center('xLink'), lx = x.x + 40, ly = x.y + 4;
@@ -324,30 +376,52 @@ S.push({ name: 'add', dur: 8, draw(t) {
   fadeEdges(t, 8, .3, .35);
 } });
 
-S.push({ name: 'popup', dur: 13, draw(t) {
+S.push({ name: 'popup', dur: 15.5, draw(t) {
   page('pSite', '<span>morgan.dev</span>', 'Alex Morgan — morgan.dev', '#101418');
   const e = center('ext');
   $('popup').style.opacity = seg(t, 1.0, 1.25);
   if (t >= .9) $('ext').className = 'hot';
-  popup([[1.0, 'a'], [4.2, 'b'], [7.2, 'c'], [10.4, 'd']], t);
+  popup([[1.0, 'a'], [4.2, 'b'], [7.2, 'cc'], [10.0, 'cp'], [12.6, 'd']], t);
   const P = $('popup').getBoundingClientRect(), s = 1.25;
-  const at = (cx, cy) => [P.left + cx * s, P.top + cy * s];
-  // positions measured in the real popup (css px), see measure.cjs
-  const addBtn = at(345, 61), ghTile = at(285, 161), custom = at(115, 425), val = at(200, 543 - 130), save = at(66, 594 - 130);
-  cursorPath(t, [[0, 1300, 600], [.85, e.x + 2, e.y + 4], [2.2, e.x + 2, e.y + 4], [3.6, ...addBtn], [5.2, ...ghTile], [6.2, ...custom], [6.9, ...custom], [8.6, ...val], [9.6, ...save], [13, save[0] + 30, save[1] + 40]]);
-  clickRing(t, .9, e.x, e.y); clickRing(t, 3.95, ...addBtn); clickRing(t, 6.95, ...custom); clickRing(t, 10.2, ...save);
-  const caps = [[0, 'Everything lives behind the <em>toolbar button</em>.'], [4.0, '<em>+</em> means not added yet. <em>✎</em> means saved: click it to edit.'], [7.0, 'Add <em>any other site</em> with your own name: Kaggle, Behance, a portfolio.'], [10.3, 'Drag or use ↑ ↓ to reorder. Undo if you remove one by mistake.']];
+  const at = (cx, cy, dy = 0) => [P.left + cx * s, P.top + (cy - dy) * s];
+  const C = window.COORDS || {};   // positions measured in the real popup (shots/coords.json)
+  const addBtn = at(...C.a.addBtn), ghTile = at(...C.b.github), custom = at(...C.b.custom);
+  const opt0 = at(...C.c.opt0, 200), val = at(...C.c2.val, 200), save = at(...C.c2.save, 200);
+  cursorPath(t, [[0, 1300, 600], [.85, e.x + 2, e.y + 4], [2.2, e.x + 2, e.y + 4], [3.6, ...addBtn], [5.2, ...ghTile], [6.2, ...custom], [6.9, ...custom],
+    [8.4, opt0[0] + 60, opt0[1] + 70], [9.3, ...opt0], [10.6, val[0] + 40, val[1] + 50], [11.6, ...save], [15.5, save[0] + 30, save[1] + 40]]);
+  clickRing(t, .9, e.x, e.y); clickRing(t, 3.95, ...addBtn); clickRing(t, 6.95, ...custom); clickRing(t, 9.75, ...opt0); clickRing(t, 12.3, ...save);
+  const caps = [[0, 'Everything lives behind the <em>toolbar button</em>.'], [4.0, '<em>+</em> means not added yet. <em>✎</em> means saved: click it to edit.'],
+    [7.0, '<em>Other link</em> suggests 35 sites as you type: Kaggle, Hugging Face, Devpost…'], [9.9, 'Pick one and type <em>just your username</em>.'], [12.6, 'Saved as <em>Kaggle</em>, ready in the menu and the address bar.']];
   let ci = 0; caps.forEach((c, i) => { if (t >= c[0]) ci = i; });
   caption(t, caps[ci][1], .2);
   const nxt = caps[ci + 1]; if (nxt && t > nxt[0] - .3) $('cap').style.opacity = 1 - seg(t, nxt[0] - .3, nxt[0]);
   if (t > caps[ci][0] && ci > 0) $('cap').style.opacity *= seg(t, caps[ci][0], caps[ci][0] + .3);
-  fadeEdges(t, 13, .3, 0);
+  fadeEdges(t, 15.5, .3, 0);
+} });
+
+S.push({ name: 'main', dur: 6.5, draw(t) {
+  page('pSite', '<span>morgan.dev</span>', 'Alex Morgan — morgan.dev', '#101418');
+  $('ext').className = 'hot'; $('popup').style.opacity = 1;
+  popup([[-1, 'd'], [1.9, 'j']], t);
+  const P = $('popup').getBoundingClientRect(), s = 1.25, C = window.COORDS || {};
+  const star = [P.left + C.d.starPortfolio[0] * s, P.top + C.d.starPortfolio[1] * s];
+  cursorPath(t, [[0, P.left + 120, P.top + 560], [1.4, ...star], [6.5, star[0] + 8, star[1] + 10]]);
+  clickRing(t, 1.75, ...star);
+  caption(t, '<em>★</em> marks your main links. Only those go on the share card.', .2);
+} });
+
+S.push({ name: 'share', dur: 6, draw(t) {
+  page('pSite', '<span>morgan.dev</span>', 'Alex Morgan — morgan.dev', '#101418');
+  $('ext').className = 'hot'; $('popup').style.opacity = 1;
+  popup([[-1, 'j'], [.6, 'g']], t);
+  $('cursor').style.opacity = 0;
+  caption(t, '<em>Share card:</em> one scan saves your ★ main links as a contact. vCard too.', .2);
 } });
 
 S.push({ name: 'profiles', dur: 5.5, draw(t) {
   page('pSite', '<span>morgan.dev</span>', 'Alex Morgan — morgan.dev', '#101418');
   $('ext').className = 'hot'; $('popup').style.opacity = 1;
-  popup([[-1, 'd'], [2.0, 'f']], t);
+  popup([[-1, 'g'], [.5, 'j'], [2.0, 'f']], t);
   const P = $('popup').getBoundingClientRect(), s = 1.25;
   const sel = [P.left + 152 * s, P.top + 105 * s];
   cursorPath(t, [[0, P.left + 90, P.top + 420], [1.4, ...sel], [5.5, sel[0] + 6, sel[1] + 8]]);
@@ -355,18 +429,10 @@ S.push({ name: 'profiles', dur: 5.5, draw(t) {
   caption(t, 'Separate <em>Work</em> and <em>Personal</em> profiles. Switch here or from the menu.', .2);
 } });
 
-S.push({ name: 'share', dur: 6, draw(t) {
-  page('pSite', '<span>morgan.dev</span>', 'Alex Morgan — morgan.dev', '#101418');
-  $('ext').className = 'hot'; $('popup').style.opacity = 1;
-  popup([[-1, 'f'], [.6, 'g']], t);
-  $('cursor').style.opacity = 0;
-  caption(t, '<em>Share card:</em> one scan saves you as a phone contact. vCard download too.', .2);
-} });
-
 S.push({ name: 'backup', dur: 5.2, draw(t) {
   page('pSite', '<span>morgan.dev</span>', 'Alex Morgan — morgan.dev', '#101418');
   $('ext').className = 'hot'; $('popup').style.opacity = 1;
-  popup([[-1, 'g'], [.6, 'h']], t);
+  popup([[-1, 'f'], [.6, 'h']], t);
   $('cursor').style.opacity = 0;
   caption(t, '<em>Back up</em> to a file. <em>Restore</em> with a preview, then merge or replace.', .2);
   fadeEdges(t, 5.2, 0, .4);

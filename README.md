@@ -8,7 +8,7 @@ Your LinkedIn, GitHub and other profile links, one right-click away on any websi
 
 [![Social Links demo video: all your links, one right-click](docs/demo/social-links-thumbnail.png)](docs/demo/social-links-demo.mp4)
 
-A 77-second walkthrough ([MP4](docs/demo/social-links-demo.mp4), [captions](docs/demo/social-links-demo.en.srt)): paste, copy and open links from the right-click menu, save a link by right-clicking it, the toolbar panel, profiles, the share card and backup. The source that renders it is in [`docs/demo/source`](docs/demo/source).
+A 95-second walkthrough ([MP4](docs/demo/social-links-demo.mp4), [captions](docs/demo/social-links-demo.en.srt)): paste, copy and open links from the right-click menu, the `sl` address-bar shortcut, saving a link by right-clicking it, the toolbar panel with site suggestions, ★ main links on the share card, profiles and backup. The source that renders it is in [`docs/demo/source`](docs/demo/source).
 
 ## Features
 

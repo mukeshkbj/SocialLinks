@@ -49,7 +49,7 @@ test('rank: prefix beats word start beats substring; name, platform and address 
   assert.equal(ids(O.rank(L, 'jane')), 'b', 'matches the address');
   assert.equal(ids(O.rank(L, 'example')), 'gc', 'example.org starts with it; me@example.com has it after @');
   assert.equal(ids(O.rank(L, 'mukesh')), 'da', 'address prefix (mukesh.dev) beats word start (github.com/mukeshkbj)');
-  assert.equal(ids(O.rank(L, 'other')), 'df', 'platform name of Other links');
+  assert.equal(ids(O.rank(L, 'other')), '', 'Other links match on their own name, not the generic platform name');
   assert.equal(ids(O.rank(L, 'portfolio')), 'd');
   assert.equal(ids(O.rank(L, 'git mk')), 'f', 'every word must match');
   assert.equal(ids(O.rank(L, 'zzz')), '');
@@ -133,4 +133,13 @@ test('resolve: what Enter does', () => {
 
 test('esc covers all XML specials', () => {
   assert.equal(O.esc(`a&b<c>d"e'f`), 'a&amp;b&lt;c&gt;d&quot;e&apos;f');
+});
+
+test('Other links do not match on the generic platform name "Other link"', () => {
+  const links = [
+    { id: 'a1b1', p: 'linkedin', v: 'jane', url: 'https://www.linkedin.com/in/jane' },
+    { id: 'a1b2', p: 'custom', v: 'https://www.kaggle.com/jane', url: 'https://www.kaggle.com/jane', label: 'Kaggle' }];
+  const r = SL.omni.rank(links, 'lin');
+  assert.deepEqual(r.map(l => l.id), ['a1b1']);
+  assert.deepEqual(SL.omni.rank(links, 'kag').map(l => l.id), ['a1b2']);
 });
