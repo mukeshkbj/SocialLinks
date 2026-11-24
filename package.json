@@ -12,7 +12,9 @@
     "firefox:lint": "npx web-ext lint --source-dir dist/firefox",
     "firefox:run": "npx web-ext run --source-dir dist/firefox",
     "firefox:sign": "npx web-ext sign --source-dir dist/firefox --channel unlisted",
-    "test:popup": "node build.mjs && node --test tests/popup-features.test.mjs && node tests/e2e-popup.cjs"
+    "test:popup": "node build.mjs && node --test tests/popup-features.test.mjs && node tests/e2e-popup.cjs",
+    "release": "node build.mjs && npx web-ext lint --source-dir dist/firefox",
+    "store:assets": "node build.mjs && node store/release/make-assets.cjs"
   },
   "devDependencies": {
     "playwright": "^1.50.0"
