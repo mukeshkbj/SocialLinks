@@ -1,18 +1,25 @@
 // Social Links — background (Chrome/Edge: service worker; Firefox: background scripts).
 // Never reads or changes web pages: the browser hands us the URL of what you right-clicked.
 if (typeof SL === 'undefined' || !SL.store) {
-  if (typeof importScripts === 'function') importScripts('platforms.js', 'i18n.js', 'store.js');
+  if (typeof importScripts === 'function') importScripts('platforms.js', 'i18n.js', 'store.js', 'omnibox.js');
 }
 const api = (typeof browser !== 'undefined' && browser.runtime) ? browser : chrome;
 const MENU = api.contextMenus || api.menus;
 const ALL = ['page', 'link', 'editable', 'selection', 'image', 'video', 'audio'];
 const t = SL.t;
 
-let cache = null;
-const getData = async () => cache || (cache = await SL.store.load());
-async function setData(d) { cache = d; await SL.store.save(d); }
+// In-memory copy of the data. `gen` goes up on every save or outside change, so a load that
+// started before one of those can't put older data back into the cache when it finishes.
+let cache = null, gen = 0;
+async function getData() {
+  if (cache) return cache;
+  const g = gen, d = await SL.store.load();
+  if (g === gen) cache = d;
+  return d;
+}
+async function setData(d) { gen++; cache = d; await SL.store.save(d); }
 const activeProfile = d => d.profiles.find(p => p.id === d.active) || d.profiles[0];
-SL.store.onChange(() => { cache = null; rebuild(); });
+SL.store.onChange(() => { gen++; cache = null; rebuild(); });
 
 // ---------------- right-click menu ----------------
 let model = [];                       // mirror of what we created (used by tests)
@@ -185,5 +192,8 @@ async function onClick(info, tab) {
 }
 MENU.onClicked.addListener((info, tab) => { onClick(info, tab); });
 
+// Shared with the address-bar shortcut (omnibox.js)
+SL.bg = { getData, copyText, badge, OK, MUTED, BAD };
+
 // Test hook (no effect in normal use)
-globalThis.__sl = { onClick, menu: () => building.then(() => model), data: getData, rebuild, insertIntoField };
+globalThis.__sl = Object.assign({ onClick, menu: () => building.then(() => model), data: getData, rebuild, insertIntoField }, SL.omni && SL.omni.hooks);

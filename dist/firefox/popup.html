@@ -36,8 +36,13 @@
   <div class="grid" id="grid" role="group" data-i18n-label="lblChoosePlatform"></div>
   <form id="form" hidden novalidate>
     <div id="nameRow" class="field" hidden>
-      <label for="nm" data-i18n="lblName">Name</label>
-      <div class="pre"><input id="nm" maxlength="40" autocomplete="off" data-i18n-ph="phName"></div>
+      <label for="nm" id="nmLab" data-i18n="lblName">Name</label>
+      <div class="combo">
+        <div class="pre"><span class="mono sm" id="nmBadge" aria-hidden="true" hidden></span><input id="nm" maxlength="40" autocomplete="off" spellcheck="false" data-i18n-ph="phName"
+          role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="nmList" aria-haspopup="listbox"></div>
+        <ul id="nmList" class="lb" role="listbox" aria-labelledby="nmLab" hidden></ul>
+      </div>
+      <p class="sr" id="nmStatus" role="status" aria-live="polite"></p>
     </div>
     <div class="field">
       <label for="val" id="lab"></label>
@@ -57,6 +62,7 @@
     <label for="owner" data-i18n="lblYourName">Your name on the card</label>
     <input id="owner" maxlength="60" autocomplete="name">
   </div>
+  <p class="hint" id="mainCount"></p>
   <div class="qrbox"><canvas id="qr" role="img" data-i18n-label="lblQr"></canvas></div>
   <p class="hint" id="qrNote"></p>
   <div class="row">

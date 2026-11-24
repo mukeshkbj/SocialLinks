@@ -77,7 +77,8 @@ SL.fromAnything = function (raw) {
     break; // a known platform's non-profile page → save as an Other link
   }
   const c = SL.cleanUrl(u);
-  return { p: 'custom', v: c, url: c, label: host };
+  const site = SL.siteByHost(u.href);
+  return { p: 'custom', v: c, url: c, label: site ? site.name : host };
 };
 
 // What the user typed in the popup for platform p → {v, url} or {e: messageKey}.
@@ -109,7 +110,102 @@ SL.validate = function (p, raw) {
   return { v, url: p.build(v) };
 };
 
-// vCard 3.0 for the share card.
+// Well-known sites offered as suggestions for an "Other link". Saved as p:'custom', label = name.
+// pattern: profile address with {user}; no pattern (Mastodon) = full URL only, any host.
+// handle: usernames look like domains (ada.bsky.social), so only https://… or a value with / is a URL.
+// ab/c: small letter badge (no brand logos).
+SL.SITES = [
+  { name: 'Kaggle', ab: 'K', c: '#1a7fa8', host: ['kaggle.com'], pattern: 'https://www.kaggle.com/{user}' },
+  { name: 'Hugging Face', ab: 'HF', c: '#a15c00', host: ['huggingface.co'], pattern: 'https://huggingface.co/{user}' },
+  { name: 'Devpost', ab: 'DP', c: '#003e54', host: ['devpost.com'], pattern: 'https://devpost.com/{user}' },
+  { name: 'Behance', ab: 'Bē', c: '#0057ff', host: ['behance.net'], pattern: 'https://www.behance.net/{user}' },
+  { name: 'Dribbble', ab: 'Dr', c: '#c32361', host: ['dribbble.com'], pattern: 'https://dribbble.com/{user}' },
+  { name: 'GitLab', ab: 'GL', c: '#b8461b', host: ['gitlab.com'], pattern: 'https://gitlab.com/{user}' },
+  { name: 'Bitbucket', ab: 'BB', c: '#0052cc', host: ['bitbucket.org'], pattern: 'https://bitbucket.org/{user}' },
+  { name: 'Bluesky', ab: 'BS', c: '#0a62c9', host: ['bsky.app'], pattern: 'https://bsky.app/profile/{user}', handle: true },
+  { name: 'Threads', ab: 'Th', c: '#111111', host: ['threads.net', 'threads.com'], pattern: 'https://www.threads.net/@{user}' },
+  { name: 'Mastodon', ab: 'Ma', c: '#563acc', host: [] },
+  { name: 'LeetCode', ab: 'LC', c: '#9a5b00', host: ['leetcode.com'], pattern: 'https://leetcode.com/u/{user}' },
+  { name: 'HackerRank', ab: 'HR', c: '#13783a', host: ['hackerrank.com'], pattern: 'https://www.hackerrank.com/profile/{user}' },
+  { name: 'Codeforces', ab: 'CF', c: '#1f5fa8', host: ['codeforces.com'], pattern: 'https://codeforces.com/profile/{user}' },
+  { name: 'CodePen', ab: 'CP', c: '#1e1f26', host: ['codepen.io'], pattern: 'https://codepen.io/{user}' },
+  { name: 'Substack', ab: 'S', c: '#c2410c', host: ['substack.com'], pattern: 'https://{user}.substack.com' },
+  { name: 'Hashnode', ab: 'H', c: '#2453c4', host: ['hashnode.com', 'hashnode.dev'], pattern: 'https://hashnode.com/@{user}' },
+  { name: 'Product Hunt', ab: 'P', c: '#c4401f', host: ['producthunt.com'], pattern: 'https://www.producthunt.com/@{user}' },
+  { name: 'ORCID', ab: 'iD', c: '#5c7a12', host: ['orcid.org'], pattern: 'https://orcid.org/{user}' },
+  { name: 'Google Scholar', ab: 'GS', c: '#3367d6', host: ['scholar.google.com'], pattern: 'https://scholar.google.com/citations?user={user}' },
+  { name: 'ResearchGate', ab: 'RG', c: '#0b7a6c', host: ['researchgate.net'], pattern: 'https://www.researchgate.net/profile/{user}' },
+  { name: 'Linktree', ab: 'LT', c: '#2b6e1f', host: ['linktr.ee'], pattern: 'https://linktr.ee/{user}' },
+  { name: 'Calendly', ab: 'Ca', c: '#0060e6', host: ['calendly.com'], pattern: 'https://calendly.com/{user}' },
+  { name: 'Telegram', ab: 'Tg', c: '#1c7bb5', host: ['t.me', 'telegram.me'], pattern: 'https://t.me/{user}' },
+  { name: 'WhatsApp', ab: 'WA', c: '#127a3a', host: ['wa.me', 'whatsapp.com'], pattern: 'https://wa.me/{user}', digits: true },
+  { name: 'Discord', ab: 'Di', c: '#4752c4', host: ['discord.gg', 'discord.com'], pattern: 'https://discord.gg/{user}' },
+  { name: 'Twitch', ab: 'Tw', c: '#6e2fd6', host: ['twitch.tv'], pattern: 'https://www.twitch.tv/{user}' },
+  { name: 'Reddit', ab: 'R', c: '#c73a00', host: ['reddit.com'], pattern: 'https://www.reddit.com/user/{user}' },
+  { name: 'Pinterest', ab: 'Pi', c: '#b60020', host: ['pinterest.com', 'pinterest.co.uk'], pattern: 'https://www.pinterest.com/{user}' },
+  { name: 'Spotify', ab: 'Sp', c: '#137a3a', host: ['spotify.com'], pattern: 'https://open.spotify.com/user/{user}' },
+  { name: 'SoundCloud', ab: 'SC', c: '#c24400', host: ['soundcloud.com'], pattern: 'https://soundcloud.com/{user}' },
+  { name: 'Patreon', ab: 'Pa', c: '#1f1f1f', host: ['patreon.com'], pattern: 'https://www.patreon.com/{user}' },
+  { name: 'Ko-fi', ab: 'Ko', c: '#1e6fa8', host: ['ko-fi.com'], pattern: 'https://ko-fi.com/{user}' },
+  { name: 'Buy Me a Coffee', ab: 'BM', c: '#6b5200', host: ['buymeacoffee.com'], pattern: 'https://buymeacoffee.com/{user}' },
+  { name: 'Upwork', ab: 'Up', c: '#14772a', host: ['upwork.com'], pattern: 'https://www.upwork.com/freelancers/{user}' },
+  { name: 'Fiverr', ab: 'Fi', c: '#137a46', host: ['fiverr.com'], pattern: 'https://www.fiverr.com/{user}' }
+];
+SL.siteByName = n => { n = String(n || '').trim().toLowerCase(); return n ? SL.SITES.find(s => s.name.toLowerCase() === n) || null : null; };
+SL.siteByHost = function (url) {
+  let h; try { h = SL.cleanHost(new URL(/^https?:\/\//i.test(url) ? url : 'https://' + url).hostname); } catch (e) { return null; }
+  return SL.SITES.find(s => s.host.length && SL.onHost(h, s.host)) || null;
+};
+// The site a saved Other link belongs to: its label is a site name (or, for older links, the bare host).
+SL.siteOf = function (l) {
+  if (!l || l.p !== 'custom') return null;
+  const byName = SL.siteByName(l.label);
+  if (byName) return byName;
+  try { if (l.label && l.label === SL.cleanHost(new URL(l.url).hostname)) return SL.siteByHost(l.url); } catch (e) {}
+  return null;
+};
+// Shown before the username, e.g. "kaggle.com/" (Substack: "substack.com ← name").
+SL.sitePrefix = s => (s && s.pattern && /\{user\}$/.test(s.pattern)) ? s.pattern.replace(/^https?:\/\/(www\.)?/, '').replace('{user}', '') : '';
+SL.siteBuild = (s, user) => s.pattern.replace('{user}', user);
+// Placeholder for the value field, e.g. "username" or "username.substack.com".
+SL.sitePlaceholder = (s, word) => !s.pattern ? 'https://…' : SL.sitePrefix(s) ? word : s.pattern.replace(/^https?:\/\//, '').replace('{user}', word);
+// Username in a URL that is exactly the site's profile address (trailing slash allowed), else null.
+SL.siteUser = function (s, url) {
+  if (!s || !s.pattern) return null;
+  const key = x => x.replace(/^https?:\/\//i, '').replace(/^(www|m|mobile)\./i, '');
+  const [pre, post] = key(s.pattern).split('{user}');
+  const rx = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const m = key(String(url || '')).match(new RegExp('^' + rx(pre) + '([^/?#&.]+|[^/?#&]+(?=/?$))' + rx(post) + '/?$', 'i'));
+  if (!m) return null;
+  let u = m[1]; try { u = decodeURIComponent(u); } catch (e) {}
+  return SL.USER_RE.test(u) ? u : null;
+};
+// What the user typed for a well-known site → {v, url} or {e: messageKey, sub}.
+SL.siteLooksUrl = (s, v) => { v = String(v || '').trim(); return /^https?:\/\//i.test(v) || (/^([\w-]+\.)+[a-z]{2,}(:\d+)?(\/|$|\?)/i.test(v) && !(s && s.handle && !/[/?]/.test(v))); };
+SL.validateSite = function (s, raw) {
+  let v = String(raw || '').trim();
+  if (!v) return { e: 'errEmpty' };
+  if (SL.siteLooksUrl(s, v)) {
+    if (!/^https?:\/\//i.test(v)) v = 'https://' + v;
+    let u; try { u = new URL(v); } catch (e) { return { e: 'errUrl' }; }
+    if (!/^https?:$/.test(u.protocol) || !u.hostname.includes('.')) return { e: 'errUrl' };
+    if (s.host.length && !SL.onHost(SL.cleanHost(u.hostname), s.host)) return { e: 'errWrongSite', sub: s.host[0] };
+    const c = SL.cleanUrl(u);
+    return { v: c, url: c };
+  }
+  if (!s.pattern) return { e: 'errNeedUrl' };
+  v = s.digits ? v.replace(/[\s()+\-]/g, '') : v.replace(/^@/, '').replace(/\/+$/, '');
+  if (!SL.USER_RE.test(v) || (s.digits && !/^\d{6,15}$/.test(v))) return { e: s.digits ? 'errPhone' : 'errUsername' };
+  const url = SL.siteBuild(s, v);
+  return { v: url, url };
+};
+
+// Main links go on the share card (QR + vCard). Default: LinkedIn, GitHub, Website, Email.
+SL.MAIN_DEFAULT = ['linkedin', 'github', 'website', 'email'];
+SL.isMain = l => !!l && (typeof l.main === 'boolean' ? l.main : SL.MAIN_DEFAULT.includes(l.p));
+SL.mainLinks = links => (links || []).filter(SL.isMain);
+
+// vCard 3.0 for the share card (the popup passes SL.mainLinks(links)).
 SL.vcard = function (name, links) {
   const esc = s => String(s).replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/([,;])/g, '\\$1');
   const lines = ['BEGIN:VCARD', 'VERSION:3.0'];

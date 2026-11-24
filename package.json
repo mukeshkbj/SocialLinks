@@ -1,6 +1,6 @@
 {
   "name": "social-links-extension",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "private": true,
   "description": "Right-click open, copy and add your social links on any website. Chrome, Edge, Firefox, Safari.",
   "license": "MIT",
