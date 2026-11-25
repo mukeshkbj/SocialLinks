@@ -35,7 +35,7 @@ const ok = (cond, name) => { if (cond) { pass++; console.log('PASS', name); } el
 
   // --- permissions
   const perms = await sw.evaluate(() => chrome.runtime.getManifest().permissions);
-  ok(JSON.stringify(perms) === JSON.stringify(['contextMenus', 'storage', 'offscreen', 'clipboardWrite']), 'only contextMenus, storage, offscreen, clipboardWrite permissions');
+  ok(JSON.stringify(perms) === JSON.stringify(['contextMenus', 'storage', 'offscreen', 'clipboardWrite', 'activeTab', 'scripting']), 'only contextMenus, storage, offscreen, clipboardWrite, activeTab, scripting permissions');
   const warnings = await sw.evaluate(s => new Promise(r => chrome.management.getPermissionWarningsByManifest(s, r)), fs.readFileSync(EXT + '/manifest.json', 'utf8'));
   ok(JSON.stringify(warnings) === JSON.stringify(['Modify data you copy and paste']), 'Chrome install warning is only: ' + warnings.join('; '));
   ok(await sw.evaluate(() => chrome.permissions.contains({ permissions: ['favicon'] })) === false, 'site icons are opt-in (favicon is optional)');
@@ -56,7 +56,7 @@ const ok = (cond, name) => { if (cond) { pass++; console.log('PASS', name); } el
   ok(gh && gh.p === 'github' && gh.url === 'https://github.com/mukeshkbj', 'right-click on repo link saves GitHub profile');
   m = await menu();
   ok(m.some(x => x.id === 'new:github' && x.title === '✎ Edit GitHub'), 'GitHub now shows ✎ Edit');
-  ok(m.some(x => x.id === 'l:' + gh.id) && m.some(x => x.id === 'o:' + gh.id && x.parentId === 'l:' + gh.id) && m.some(x => x.id === 'c:' + gh.id), 'link submenu with Open and Copy uses permanent id');
+  ok(m.some(x => x.id === 'l:' + gh.id) && m.some(x => x.id === 'o:' + gh.id && x.parentId === 'l:' + gh.id) && m.some(x => x.id === 'c:' + gh.id) && m.some(x => x.id === 'v:' + gh.id && x.contexts.join() === 'editable'), 'link submenu (Paste in text boxes, Open, Copy) uses permanent id');
   ok(m.findIndex(x => x.id === 'l:' + gh.id) < m.findIndex(x => x.id === 'add'), 'links listed before submenus');
 
   await click({ menuItemId: 'save-link', linkUrl: 'https://github.com/someone-else' });
@@ -71,7 +71,7 @@ const ok = (cond, name) => { if (cond) { pass++; console.log('PASS', name); } el
   ok(W.length === 3 && W.some(l => l.p === 'email') && W.some(l => l.p === 'custom' && l.label === 'kaggle.com'), 'selection email + page as Other link saved; javascript: rejected');
   const em = W.find(l => l.p === 'email');
   m = await menu();
-  ok(m.some(x => x.id === 'c:' + em.id && x.parentId === 'root' && x.title.startsWith('⧉')) && !m.some(x => x.id === 'o:' + em.id), 'email is copy-only');
+  ok(m.some(x => x.id === 'c:' + em.id && x.parentId === 'l:' + em.id) && m.some(x => x.id === 'v:' + em.id) && !m.some(x => x.id === 'o:' + em.id), 'email can be copied or pasted, never opened');
 
   // --- copy from the menu (offscreen document)
   await click({ menuItemId: 'c:' + gh.id });

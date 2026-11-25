@@ -31,12 +31,13 @@ async function build() {
   const d = await getData(), prof = activeProfile(d);
   add({ id: 'root', title: t('extShortName') });
 
-  // 1. saved links first (permanent ids, never list positions)
+  // 1. saved links first (permanent ids, never list positions).
+  //    In a text box each link offers Paste first; Open isn't offered for email.
   for (const l of prof.links) {
     const label = short(SL.linkName(l) + ' — ' + SL.display(l));
-    if (l.p === 'email') { add({ id: 'c:' + l.id, parentId: 'root', title: '⧉ ' + label }); continue; }
     add({ id: 'l:' + l.id, parentId: 'root', title: label });
-    add({ id: 'o:' + l.id, parentId: 'l:' + l.id, title: '↗ ' + t('menuOpen') });
+    add({ id: 'v:' + l.id, parentId: 'l:' + l.id, title: '⤵ ' + t('menuPaste'), contexts: ['editable'] });
+    if (SL.openUrl(l)) add({ id: 'o:' + l.id, parentId: 'l:' + l.id, title: '↗ ' + t('menuOpen') });
     add({ id: 'c:' + l.id, parentId: 'l:' + l.id, title: '⧉ ' + t('menuCopy') });
   }
   if (!prof.links.length) add({ id: 'none', parentId: 'root', title: t('menuNoLinks', prof.name), enabled: false });
@@ -107,6 +108,39 @@ async function copyText(text) {
   } catch (e) { return false; }
 }
 
+// ---------------- paste ----------------
+// Runs inside the page, only for the tab you right-clicked and only when you choose Paste
+// (activeTab). It types into the focused text box and reads nothing from the page.
+function insertIntoField(text) {
+  let el = document.activeElement;
+  while (el && el.shadowRoot && el.shadowRoot.activeElement) el = el.shadowRoot.activeElement;
+  if (!el) return false;
+  if (el.isContentEditable) { el.focus(); return document.execCommand('insertText', false, text); }
+  const isText = el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && /^(text|search|url|email|tel|)$/i.test(el.getAttribute('type') || ''));
+  if (!isText || el.readOnly || el.disabled) return false;
+  el.focus();
+  // execCommand keeps the field's undo history and fires the events page frameworks listen for
+  try { if (document.execCommand('insertText', false, text)) return true; } catch (e) {}
+  try { el.setRangeText(text, el.selectionStart, el.selectionEnd, 'end'); }
+  catch (e) {                                         // email/url inputs have no selection API
+    const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+    Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, text);
+  }
+  el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }));
+  el.dispatchEvent(new Event('change', { bubbles: true }));
+  return true;
+}
+async function pasteInto(tab, frameId, text) {
+  let ok = false;
+  try {
+    const res = await api.scripting.executeScript({ target: { tabId: tab.id, frameIds: [frameId || 0] }, func: insertIntoField, args: [text] });
+    ok = !!(res && res[0] && res[0].result);
+  } catch (e) { ok = false; }        // browser pages and stores block extensions
+  if (ok) return badge(tab, '✓', OK);
+  // couldn't type here: copy instead so Ctrl+V / Cmd+V still works
+  return badge(tab, (await copyText(text)) ? '⧉' : '!', OK);
+}
+
 // ---------------- actions ----------------
 async function saveFromMenu(raw, tab) {
   const item = SL.fromAnything(raw);
@@ -135,10 +169,11 @@ async function onClick(info, tab) {
       if (d.profiles.some(p => p.id === ref) && d.active !== ref) { d.active = ref; await setData(d); }
       return;
     }
-    case 'o': case 'c': {
+    case 'o': case 'c': case 'v': {
       const d = await getData();
       const l = activeProfile(d).links.find(x => x.id === ref);   // look up by permanent id
       if (!l) return badge(tab, '!', BAD);
+      if (kind === 'v' && tab && tab.id >= 0) return pasteInto(tab, info.frameId, SL.linkValue(l));
       if (kind === 'o' && SL.openUrl(l)) {
         const o = { url: SL.openUrl(l) };
         if (tab && tab.id >= 0) { o.index = tab.index + 1; o.openerTabId = tab.id; }
@@ -151,4 +186,4 @@ async function onClick(info, tab) {
 MENU.onClicked.addListener((info, tab) => { onClick(info, tab); });
 
 // Test hook (no effect in normal use)
-globalThis.__sl = { onClick, menu: () => building.then(() => model), data: getData, rebuild };
+globalThis.__sl = { onClick, menu: () => building.then(() => model), data: getData, rebuild, insertIntoField };

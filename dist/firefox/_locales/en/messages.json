@@ -6,7 +6,7 @@
   "message": "Social links"
  },
  "extDescription": {
-  "message": "Keep your LinkedIn, GitHub and other profile links one right-click away on any website. Open, copy, add — no access to website data."
+  "message": "Keep your LinkedIn, GitHub and other profile links one right-click away on any website. Paste, copy, open or add — no access to your browsing."
  },
  "cmdOpen": {
   "message": "Open Social Links"
@@ -198,7 +198,7 @@
   "message": "Too many links for one QR code. Download the vCard instead."
  },
  "tipFooter": {
-  "message": "Right-click anywhere › Social links to open, copy or add. Alt+Shift+L opens this panel. No access to website data."
+  "message": "Right-click in a text box › Social links to paste a link, or anywhere to open, copy or add. Alt+Shift+L opens this panel."
  },
  "confirmDeleteProfile": {
   "message": "Delete the profile “$1” and its $2 link(s)? Back up first if you might want them again."
@@ -334,5 +334,8 @@
  },
  "toastUndoGone": {
   "message": "Can't undo: that profile was deleted."
+ },
+ "menuPaste": {
+  "message": "Paste here"
  }
 }

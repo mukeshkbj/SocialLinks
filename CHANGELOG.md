@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.0 — 2026-11-24
+### Added
+- **Paste here**: right-click in a text box › Social links › any link › Paste here types it into that box. Works in plain fields, email/URL fields, textareas (at the cursor), rich-text editors and fields inside frames; Ctrl+Z undoes it; page frameworks see a normal input event. Where a page can't be typed into, the link is copied instead (badge ⧉) so Ctrl+V works.
+- Email links now have a submenu (Paste here, Copy).
+- New permissions `activeTab` and `scripting`. Chrome shows no new install warning (still only "Modify data you copy and paste"); the extension can only reach a page in the moment you choose Paste on it, and reads nothing from it.
+
 ## 2.0.1 — 2026-11-24
 ### Fixed
 - **Installing on a new computer no longer risks wiping synced links.** 2.0.0 saved empty default profiles on first run, which could sync over links saved on other devices before the browser had downloaded them. Defaults now stay in memory until you change something.

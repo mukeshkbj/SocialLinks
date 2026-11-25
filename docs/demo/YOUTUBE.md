@@ -5,7 +5,7 @@
 **Captions:** `social-links-demo.en.srt` (English)
 
 ## Title (pick one, under 70 characters)
-1. Social Links: copy your LinkedIn & GitHub with one right-click
+1. Social Links: paste your LinkedIn & GitHub into any form with one right-click
 2. Stop retyping your LinkedIn URL: a free right-click browser extension
 3. Social Links extension demo: open, copy & add profile links anywhere
 
@@ -16,7 +16,8 @@ Tired of typing your LinkedIn, GitHub and portfolio URLs into every job applicat
 ▶ Get it (free, open source): https://github.com/mukeshkbj/SocialLinks
 
 What it does
-• Right-click anywhere › Social links › Copy or Open any saved link
+• Right-click in a text box › Social links › Paste here: the link is typed in for you
+• Or Copy / Open any saved link from the right-click menu
 • Right-click a profile link › + Add this link (platform and username detected)
 • + means not added yet, ✎ means saved: click to edit
 • Add any other site under your own name (Kaggle, Behance, portfolio)
@@ -24,13 +25,13 @@ What it does
 • Share card: QR code + vCard so people can save you as a contact
 • Back up and restore with a preview
 
-Private by design: it never reads or changes the websites you visit. No tracking, no analytics, no network requests. Your links sync through your own browser account.
+Private by design: it never reads the websites you visit, and only types into a page when you choose Paste. No tracking, no analytics, no network requests. Your links sync through your own browser account.
 
 Works in Chrome, Edge, Brave, Opera and Firefox. Install steps are in the README.
 
 Chapters
 0:00 What Social Links does
-0:10 Copy and open links from the right-click menu
+0:10 Paste, copy and open links from the right-click menu
 0:26 Save links and manage them from the toolbar
 0:47 Profiles, share card and backup
 1:03 Privacy and where to get it
@@ -63,7 +64,7 @@ ffmpeg -i social-links-demo.mp4 -i voice.wav -filter_complex "[0:a]volume=0.35[m
 ### Narration script (lines start at these times)
 - **0:00** This is Social Links, your profile links one right-click away.
 - **0:05** Every application asks for the same links.
-- **0:09** Right-click, Social links, LinkedIn, Copy, and paste. Done.
+- **0:09** Right-click in the box, Social links, LinkedIn, Paste here. Done.
 - **0:16** Same for GitHub, or any link you've saved.
 - **0:21** You can open them in a new tab too.
 - **0:26** To save a link, right-click it and choose "Add this link". It works out the platform and username for you.
@@ -72,5 +73,5 @@ ffmpeg -i social-links-demo.mp4 -i voice.wav -filter_complex "[0:a]volume=0.35[m
 - **0:47** Keep separate Work and Personal profiles.
 - **0:53** Share a QR code that saves you straight into someone's contacts.
 - **0:59** And back everything up to a file.
-- **1:04** It never reads the websites you visit, with no tracking and no network requests.
+- **1:04** It never reads the websites you visit; it only types when you choose Paste. No tracking, no network requests.
 - **1:10** Social Links is free and open source. The link's in the description.

@@ -6,7 +6,7 @@ T = sum(DUR); N = int(T * SR); t = np.arange(N) / SR
 start = np.cumsum([0] + DUR[:-1])
 # clicks (scene index, time in scene) — mirror clickRing() calls in stage.html
 CLICKS = [(2, .65), (2, 4.6), (2, 9.6), (3, .85), (3, 3.75), (4, 1.15), (4, 4.45), (5, .9), (5, 3.95), (5, 6.95), (5, 10.2), (6, 1.7)]
-PASTE = [(2, 5.45), (2, 10.35)]
+PASTE = []   # Paste here types the link in on the click itself
 
 def note(f): return 440 * 2 ** ((f - 69) / 12)
 # I – vi – IV – V in D major, 4 s per chord, warm pad (sine + soft 2nd/3rd harmonics)

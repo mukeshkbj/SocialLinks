@@ -122,7 +122,7 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:#06221d;font-fam
   <div class="meta"><span>Browser extension</span><span>·</span><b>Chrome · Edge · Firefox</b></div></div>
 <div class="card" id="cPriv"><h1 style="font-size:92px">Private by design</h1>
   <div class="rows">
-    <div class="row"><i class="n">✕</i>Never reads or changes the websites you visit</div>
+    <div class="row"><i class="n">✕</i>Only types into a page when you choose Paste. Never reads it</div>
     <div class="row"><i class="n">✕</i>No tracking, no analytics, no network requests</div>
     <div class="row"><i class="y">✓</i>Links sync through your own browser account</div></div>
   <div class="warn"><div><small>Chrome's only install warning</small>“Modify data you copy and paste” — for Copy</div></div></div>
@@ -153,10 +153,11 @@ const PAGE_MENU = [['Back'], ['Forward'], ['Reload'], '-', ['Save as…'], ['Pri
 const LINK_MENU = [['Open link in new tab'], ['Open link in new window'], ['Copy link address'], '-', ['Social links', ICON, true], '-', ['Inspect']];
 const SL_MENU = (withX) => [
   ['LinkedIn — linkedin.com/in/alex-morgan-dev', '', true], ['GitHub — github.com/alexmorgan', '', true],
-  ['⧉ Email — alex@morgan.dev'], ['Portfolio — morgan.dev', '', true],
+  ['Email — alex@morgan.dev', '', true], ['Portfolio — morgan.dev', '', true],
   ...(withX ? [['X (Twitter) — x.com/alexmorgan_dev', '', true]] : []),
   '-', ['+ Add / ✎ Edit', '', true], ['Profile: Work', '', true], ['Manage links…']];
 const LINK_SUB = [['↗ Open'], ['⧉ Copy']];
+const FIELD_SUB = [['⤵ Paste here'], ['↗ Open'], ['⧉ Copy']];   // in a text box Paste comes first
 const ADD_SUB = (x) => [['+ Add this link'], '-', ['✎ Edit LinkedIn'], ['✎ Edit GitHub'], [(x ? '✎ Edit ' : '+ Add ') + 'X (Twitter)'], ['+ Add Instagram'], ['+ Add YouTube'], ['+ Add Facebook'], ['+ Add TikTok'], ['…']];
 
 // Real menus keep inside the screen: shift up if they would run off the bottom,
@@ -250,16 +251,14 @@ S.push({ name: 'copy', dur: 12, draw(t) {
   const p8 = itemPos($('m0'), 8);
   sub($('m0'), 8, $('m1'), SL_MENU(false), t >= 2.7 ? 0 : -1, sl ? seg(t, 1.9, 2.05) : 0);
   const q0 = itemPos($('m1'), 0);
-  sub($('m1'), 0, $('m2'), LINK_SUB, t >= 4.0 ? 1 : -1, ls ? seg(t, 2.9, 3.05) : 0);
-  const r1 = itemPos($('m2'), 1);
+  sub($('m1'), 0, $('m2'), FIELD_SUB, t >= 4.0 ? 0 : -1, ls ? seg(t, 2.9, 3.05) : 0);
+  const r1 = itemPos($('m2'), 0);
   cursorPath(t, [[0, 860, 470], [.6, mx + 4, my - 8], [1.3, mx + 40, my + 20], [1.75, p8.cx, p8.cy], [2.5, p8.cx + 60, p8.cy], [2.85, q0.cx, q0.cy], [3.6, q0.right - 30, q0.cy], [3.95, r1.cx, r1.cy], [5.0, r1.cx + 20, r1.cy + 40], [5.3, mx + 30, my + 30],
     [7.0, mx + 30, my + 30], [7.5, gh.r.left + 260, gh.y + 4], [11.5, gh.r.left + 270, gh.y + 14]]);
   clickRing(t, .65, mx + 4, my - 8); clickRing(t, 4.6, r1.cx, r1.cy);
-  badge(t, 4.75, '⧉', '#00685a');
+  badge(t, 4.75, '✓', '#00685a');
   // Ctrl+V
-  const kv = (at, keyx, keyy) => { if (t > at && t < at + .9) { const k = $('key'); k.textContent = 'Ctrl + V'; k.style.left = keyx + 'px'; k.style.top = keyy + 'px'; k.style.opacity = seg(t, at, at + .12) * (1 - seg(t, at + .7, at + .9)); } };
-  kv(5.2, li.r.right + 24, li.y - 30);
-  if (t >= 5.45) $('fLi').innerHTML = 'https://www.linkedin.com/in/alex-morgan-dev';
+  if (t >= 4.7) $('fLi').innerHTML = 'https://www.linkedin.com/in/alex-morgan-dev';
   // GitHub, sped up: 7.6 right-click → 9.6 copy → 10.2 paste
   if (t >= 7.4) { $('fLi').className = 'inp'; $('fGh').className = 'inp focus'; }
   const gx = gh.r.left + 150, gy = gh.y + 4;
@@ -269,15 +268,14 @@ S.push({ name: 'copy', dur: 12, draw(t) {
     const a8 = itemPos($('m0'), 8);
     sub($('m0'), 8, $('m1'), SL_MENU(false), t >= 8.7 ? 1 : -1, g1 ? 1 : 0);
     const b1 = itemPos($('m1'), 1);
-    sub($('m1'), 1, $('m2'), LINK_SUB, t >= 9.3 ? 1 : -1, g2 ? 1 : 0);
-    const c1 = itemPos($('m2'), 1);
+    sub($('m1'), 1, $('m2'), FIELD_SUB, t >= 9.3 ? 0 : -1, g2 ? 1 : 0);
+    const c1 = itemPos($('m2'), 0);
     cursorPath(t, [[7.5, gx + 4, gy], [8.1, a8.cx, a8.cy], [8.4, a8.cx + 60, a8.cy], [8.7, b1.cx, b1.cy], [9.0, b1.right - 30, b1.cy], [9.3, c1.cx, c1.cy], [10.0, gx + 40, gy + 30], [12, gx + 50, gy + 34]]);
     clickRing(t, 9.6, c1.cx, c1.cy);
   }
-  badge(t, 9.75, '⧉', '#00685a');
-  kv(10.1, gh.r.right + 24, gh.y - 30);
-  if (t >= 10.35) $('fGh').innerHTML = 'https://github.com/alexmorgan';
-  caption(t, t < 7 ? 'Right-click › <em>Social links</em> › LinkedIn › <em>Copy</em>. Then paste.' : 'Same for GitHub, or any link you’ve saved.', .2);
+  badge(t, 9.75, '✓', '#00685a');
+  if (t >= 9.7) $('fGh').innerHTML = 'https://github.com/alexmorgan';
+  caption(t, t < 7 ? 'Right-click in the box › <em>Social links</em> › LinkedIn › <em>Paste here</em>.' : 'Same for GitHub, or any link you’ve saved.', .2);
   if (t > 6.6 && t < 7.4) $('cap').style.opacity = 1 - seg(t, 6.6, 6.85) + seg(t, 7.0, 7.3);
   fadeEdges(t, 12, 0, .35);
 } });
