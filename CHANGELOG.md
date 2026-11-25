@@ -1,6 +1,19 @@
 # Changelog
 
-## Unreleased
+## 2.0.1 — 2026-11-24
+### Fixed
+- **Installing on a new computer no longer risks wiping synced links.** 2.0.0 saved empty default profiles on first run, which could sync over links saved on other devices before the browser had downloaded them. Defaults now stay in memory until you change something.
+- Usernames with accents or in other scripts (e.g. `linkedin.com/in/josé-garcía`) are recognised instead of being saved as an Other link or rejected.
+- A link saved from the right-click menu while the popup's add/edit form is open is no longer overwritten when the form is saved.
+- Editing a link that was removed in another window saves it, instead of silently losing the edit.
+- "Undo remove" no longer reports "Restored" after the link's profile was deleted.
+- Copy from the menu in Firefox falls back to the older copy method if the clipboard API is refused.
+
+### Changed
+- Tracking parameters (`utm_*`, `fbclid`, `gclid`, `si`, `ref` …) are removed from saved links.
+- Duplicate detection ignores `http`/`https`, `www.`, host letter case and a trailing slash.
+- YouTube `/channel/`, `/c/` and `/user/` links and `name.medium.com` pages are saved as YouTube and Medium links.
+
 ### Added
 - Demo video (`docs/demo/social-links-demo.mp4`) with thumbnail, English captions, YouTube upload kit, and the scripts that render it (`docs/demo/source`).
 

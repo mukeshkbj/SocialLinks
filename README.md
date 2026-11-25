@@ -75,19 +75,20 @@ Chrome reports exactly one install warning for this extension: *Modify data you 
 
 ```
 npm run build        # dist/chromium, dist/firefox + zips
-npm test             # unit tests + simulated-Firefox background test
+npm test             # unit + regression tests + simulated-Firefox background test
 npm run test:qr      # QR encoder round-trip, decoded by OpenCV (python3 + opencv)
 npm run test:e2e     # loads dist/chromium in real Chrome with Playwright
 ```
 Source is in `src/` (plain JavaScript, no build step, no dependencies); `manifests/` holds the per-browser manifests; strings are in `src/_locales/en/messages.json` — copy that folder to e.g. `_locales/fr/` to translate.
 
-## Testing status (v2.0.0)
+## Testing status (v2.0.1)
 
 | Check | Result |
 |---|---|
 | Unit tests: URL parsing, validation, vCard, storage fallback, v1 migration, backup cleaning/merge, QR | 9/9 pass |
+| Regression tests for the 2.0.1 fixes: no first-run overwrite, accented usernames, tracking parameters, duplicate URLs, YouTube channels, Medium subdomains | 7/7 pass |
 | QR encoder decoded by OpenCV (versions 1–19, levels M and L, incl. Unicode) | 20/20 pass |
-| Real Chrome (Playwright, unpacked extension): permissions and install warnings, menu structure, add/update/copy/open from the menu, stale-ID safety, profile switching, popup add/edit/validate, + and ✎ tiles, keyboard reorder, remove/undo, search, profiles, share card + vCard + QR image, backup/restore with preview, deep links, accessibility names | 47/47 pass |
+| Real Chrome (Playwright, unpacked extension): permissions and install warnings, menu structure, add/update/copy/open from the menu, stale-ID safety, profile switching, popup add/edit/validate, + and ✎ tiles, keyboard reorder, remove/undo, search, profiles, share card + vCard + QR image, backup/restore with preview, deep links, accessibility names, and the 2.0.1 fixes (menu save while a form is open, editing a link deleted elsewhere, undo after a profile is deleted) | 51/51 pass |
 | Simulated Firefox background (fake `browser` API) | pass |
 
 **Not tested:**

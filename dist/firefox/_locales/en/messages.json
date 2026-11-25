@@ -331,5 +331,8 @@
  },
  "tipIcons": {
   "message": "Shows the real icon for Other links. Chrome will ask for permission to read website icons."
+ },
+ "toastUndoGone": {
+  "message": "Can't undo: that profile was deleted."
  }
 }

@@ -197,6 +197,33 @@ const ok = (cond, name) => { if (cond) { pass++; console.log('PASS', name); } el
   ok(/isn't a Social Links backup/.test(await tab.textContent('#importErr')), 'bad backup file rejected with a clear message');
   await tab.close();
 
+  // --- 2.0.1 regressions: changes from elsewhere while a form is open ---
+  const r = await ctx.newPage(); await r.goto(POPUP); await r.waitForSelector('.item');
+  await r.click('#addBtn'); await r.click('[data-p=custom]');               // form open…
+  await click({ menuItemId: 'save-link', linkUrl: 'https://dribbble.com/alexmorgan' });   // …while the menu saves a link
+  await r.waitForTimeout(300);
+  await r.fill('#nm', 'Behance'); await r.fill('#val', 'https://www.behance.net/alexmorgan?utm_source=x'); await r.click('#save');
+  await r.waitForTimeout(300);
+  d = await data();
+  let W2 = d.profiles.find(p => p.id === d.active).links;
+  ok(W2.some(l => /dribbble/.test(l.url)) && W2.some(l => l.label === 'Behance'), 'menu save made while the popup form is open is kept');
+  ok(W2.find(l => l.label === 'Behance').url === 'https://www.behance.net/alexmorgan', 'tracking parameters stripped on save');
+  // edit a link that another window deletes before saving
+  const beh = W2.find(l => l.label === 'Behance');
+  await r.click(`[data-id="${beh.id}"] [data-act=edit]`);
+  await sw.evaluate(async id => { const x = await chrome.storage.sync.get('data'); const P = x.data.profiles.find(p => p.id === x.data.active); P.links = P.links.filter(l => l.id !== id); await chrome.storage.sync.set({ data: x.data }); }, beh.id);
+  await r.waitForTimeout(300);
+  await r.fill('#val', 'https://www.behance.net/alexmorgan2'); await r.click('#save'); await r.waitForTimeout(300);
+  d = await data(); W2 = d.profiles.find(p => p.id === d.active).links;
+  ok(W2.some(l => l.url === 'https://www.behance.net/alexmorgan2'), 'editing a link deleted elsewhere saves it instead of losing it');
+  // undo after the link's profile was deleted
+  await r.click('#profNew'); await r.fill('#profName', 'Temp'); await r.click('#profForm [type=submit]'); await r.waitForTimeout(200);
+  await r.click('#addBtn'); await r.click('[data-p=github]'); await r.fill('#val', 'tempuser'); await r.click('#save'); await r.waitForTimeout(200);
+  await r.click('.item [data-act=del]'); await r.waitForTimeout(150);
+  await r.click('#profDel'); await r.click('#profDelYes'); await r.waitForTimeout(200);
+  ok(await r.isHidden('#undo'), 'deleting a profile clears its pending undo');
+  await r.close();
+
   // add-from-menu deep link opens the right form
   const deep = await ctx.newPage(); await deep.goto(POPUP + '#add-x');
   ok(!(await deep.isHidden('#form')) && /X \(Twitter\)/.test(await deep.textContent('#lab')), '"+ Add X" from the menu opens the X form');

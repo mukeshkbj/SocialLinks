@@ -92,7 +92,8 @@ function pick(p, l) {
   cur = p; $('form').hidden = false; $('err').textContent = '';
   $('nameRow').hidden = !p.custom; $('nm').value = (l && l.label) || '';
   $('lab').textContent = p.email ? t('lblEmail') : p.url ? t('lblUrl', p.name) : t('lblUsername', p.name);
-  $('prefix').textContent = p.pre || ''; $('prefix').hidden = !p.pre;
+  const isUrl = !!(l && /^https?:\/\//i.test(l.v));
+  $('prefix').textContent = p.pre || ''; $('prefix').hidden = !p.pre || isUrl;
   $('val').type = p.email ? 'email' : p.url ? 'url' : 'text';
   $('val').placeholder = p.email ? 'you@example.com' : p.url ? 'https://…' : t('phUsername');
   $('save').textContent = editId ? '✎ ' + t('btnSaveChanges') : '+ ' + t('btnAdd');
@@ -115,9 +116,10 @@ $('form').onsubmit = async e => {
     if (!label) { try { label = SL.cleanHost(new URL(r.url).hostname); } catch (err) { label = cur.name; } }
     item.label = label.slice(0, 40);
   }
-  if (P.links.some(l => l.url === item.url && l.id !== item.id)) { $('err').textContent = t('errDuplicate'); return; }
+  if (P.links.some(l => SL.sameUrl(l.url, item.url) && l.id !== item.id)) { $('err').textContent = t('errDuplicate'); return; }
   const wasEdit = !!editId;
-  if (wasEdit) P.links[P.links.findIndex(l => l.id === editId)] = item; else P.links.push(item);
+  const at = wasEdit ? P.links.findIndex(l => l.id === editId) : -1;
+  if (at >= 0) P.links[at] = item; else P.links.push(item);          // edited link may have been removed elsewhere
   await persist(); openSheet(false); toast(wasEdit ? t('toastSaved') : t('toastAdded'));
   $('addBtn').focus();
 };
@@ -161,9 +163,13 @@ $('links').addEventListener('keydown', async e => {
 });
 $('undo').onclick = async () => {
   if (!lastRemoved) return;
-  const P = data.profiles.find(p => p.id === lastRemoved.profile);
-  if (P) { P.links.splice(Math.min(lastRemoved.index, P.links.length), 0, lastRemoved.link); data.active = P.id; }
-  lastRemoved = null; $('undo').hidden = true; await persist(); render(); toast(t('toastRestored'));
+  const { profile, index, link } = lastRemoved;
+  lastRemoved = null; $('undo').hidden = true;
+  const P = data.profiles.find(p => p.id === profile);
+  if (!P) { toast(t('toastUndoGone')); return; }                     // its profile was deleted since
+  if (!P.links.some(l => l.id === link.id)) P.links.splice(Math.min(index, P.links.length), 0, link);
+  data.active = P.id;
+  await persist(); render(); toast(t('toastRestored'));
 };
 
 // drag to reorder (mouse, pen, touch)
@@ -181,7 +187,15 @@ $('links').addEventListener('pointermove', e => {
   const li = $('links').querySelector(`[data-id="${CSS.escape(dragId)}"]`); li?.classList.add('drag');
   li?.querySelector('.grip')?.setPointerCapture?.(e.pointerId);
 });
-const endDrag = () => { if (!dragId) return; dragId = null; persist(); render(); };
+const endDrag = async () => {
+  if (!dragId) return;
+  const order = prof().links.map(l => l.id); dragId = null;
+  if (staleDuringDrag) {                       // something changed elsewhere mid-drag: re-apply the order to fresh data
+    staleDuringDrag = false; data = await SL.store.load();
+    const L = prof().links; L.sort((a, b) => (order.indexOf(a.id) + 1 || 1e9) - (order.indexOf(b.id) + 1 || 1e9));
+  }
+  persist(); render();
+};
 $('links').addEventListener('pointerup', endDrag); $('links').addEventListener('pointercancel', endDrag);
 
 $('search').addEventListener('input', e => { query = e.target.value; render(); });
@@ -217,6 +231,7 @@ $('profDel').onclick = () => {
 $('profDelNo').onclick = () => { $('profDelPanel').hidden = true; $('profDel').focus(); };
 $('profDelYes').onclick = async () => {
   const name = prof().name;
+  if (lastRemoved && lastRemoved.profile === data.active) { lastRemoved = null; $('undo').hidden = true; }
   data.profiles = data.profiles.filter(p => p.id !== data.active); data.active = data.profiles[0].id;
   $('profDelPanel').hidden = true; await persist(); render(); toast(t('toastProfileDeleted', name)); $('profSel').focus();
 };
@@ -315,12 +330,15 @@ document.addEventListener('keydown', e => {
   if (open) { e.preventDefault(); closeAllPanels(); render(); $('addBtn').focus(); }
 });
 
-SL.store.onChange(async () => {
-  if (dragId || !$('form').hidden || !$('profForm').hidden) return; // don't disturb an edit in progress
+// Changes made elsewhere (the right-click menu, another window) are picked up straight away,
+// even while a form is open: the forms aren't redrawn, and saves always start from fresh data.
+let staleDuringDrag = false;
+async function refresh() {
   const fresh = await SL.store.load();
   if (JSON.stringify(fresh) === JSON.stringify(SL.store.clean(data))) return;   // our own save echoing back
   data = fresh; render();
-});
+}
+SL.store.onChange(() => { if (dragId) staleDuringDrag = true; else refresh(); });
 
 (async function init() {
   try { const tab = await api.tabs.getCurrent(); inTab = !!tab; } catch (e) { inTab = false; }
