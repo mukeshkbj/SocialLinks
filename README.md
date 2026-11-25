@@ -8,20 +8,21 @@ Your LinkedIn, GitHub and other profile links, one right-click away on any websi
 
 [![Social Links demo video: all your links, one right-click](docs/demo/social-links-thumbnail.png)](docs/demo/social-links-demo.mp4)
 
-A 77-second walkthrough ([MP4](docs/demo/social-links-demo.mp4), [captions](docs/demo/social-links-demo.en.srt)): paste, copy and open links from the right-click menu, save a link by right-clicking it, the toolbar panel, profiles, the share card and backup. The source that renders it is in [`docs/demo/source`](docs/demo/source).
+A 95-second walkthrough ([MP4](docs/demo/social-links-demo.mp4), [captions](docs/demo/social-links-demo.en.srt)): paste, copy and open links from the right-click menu, the `sl` address-bar shortcut, saving a link by right-clicking it, the toolbar panel with site suggestions, ★ main links on the share card, profiles and backup. The source that renders it is in [`docs/demo/source`](docs/demo/source).
 
 ## Features
 
 - **Paste straight into forms** — right-click in a text box › Social links › LinkedIn › **Paste here**. Works in plain fields, rich-text editors and fields inside frames, keeps Ctrl+Z, and falls back to copying where a page can't be typed into.
+- **Address-bar shortcut** — type `sl` and a space in the address bar, then a name: `sl linkedin` opens it, `sl copy github` (or `sl c github`) copies it, `sl manage` opens the manager. No mouse needed.
 - **Right-click menu everywhere** — open or copy any saved link; add the link, page or text you right-clicked; add or edit any platform; switch profile.
-- **Built-in platforms** — LinkedIn, GitHub, X, Instagram, YouTube, Facebook, TikTok, Medium, DEV, Stack Overflow, Website, Email — plus **Other link** for any site under your own name, as many as you like.
+- **Built-in platforms** — LinkedIn, GitHub, X, Instagram, YouTube, Facebook, TikTok, Medium, DEV, Stack Overflow, Website, Email — plus **Other link** for any site under your own name, as many as you like. When adding an Other link, a searchable list suggests 35 well-known sites (Kaggle, Hugging Face, Devpost, Behance, Dribbble, GitLab, Bluesky, LeetCode, Substack, ORCID …) and sets up the address so you only type your username.
 - **Smart detection** — right-click a GitHub repo, a LinkedIn post or a YouTube video and it saves the owner's profile. Unknown sites become an Other link named after the site.
 - **+ and ✎** — platforms you haven't added show **+**; ones you have show **✎** and open for editing. One link per platform, so you never get duplicates.
 - **Profiles** — separate sets such as Work and Personal; create, rename, delete and switch from the popup or the menu.
-- **Share card** — a QR code that phones scan straight into contacts, plus a downloadable vCard (.vcf).
+- **Share card** — a QR code that phones scan straight into contacts, plus a downloadable vCard (.vcf). Only links marked **★ main** go on the card; LinkedIn, GitHub, Website and Email are main by default, and you can change it per link.
 - **Backup and restore** — export everything to a JSON file; import with a preview, then merge or replace.
 - **Everyday polish** — search once you have more than 10 links, drag or keyboard reordering, Undo after remove, Copy all / Copy JSON, Alt+Shift+L shortcut, light and dark mode, high-contrast support, full keyboard and screen-reader support.
-- **Syncs** through your browser account; if you outgrow the sync quota it saves on this computer instead and tells you.
+- **Syncs** through your browser account, one link at a time: edits made on two computers at about the same time both survive (the same link edited on both keeps the newer edit). The profile you're using is chosen per computer. If you outgrow the sync quota it saves on this computer instead and tells you.
 
 ## Right-click menu
 
@@ -71,6 +72,7 @@ Open the generated Xcode project, **Run**, then enable it in Safari › Settings
 | `clipboardWrite` | all | write (never read) the clipboard for **Copy** | "Modify data you copy and paste" |
 | `activeTab` | all | when you choose **Paste here**, lets the extension into *that one tab, that one time* | none |
 | `scripting` | all | types the link into the box you right-clicked (it reads nothing from the page) | none |
+| `omnibox` keyword `sl` *(manifest key, not a permission)* | all | the address-bar shortcut | none |
 | `favicon` *(optional, off by default)* | Chrome/Edge | real site icons for Other links — only if you click **Show site icons** | "Read the icons of the websites you visit" |
 
 Chrome reports exactly one install warning for this extension: *Modify data you copy and paste* (verified with `chrome.management.getPermissionWarningsByManifest`). Adding Paste (`activeTab` + `scripting`) did not add a warning, because there are no host permissions: the extension can only reach a page in the moment you pick **Paste here** on it. It cannot read your clipboard, your tabs, your history or any page content.
@@ -85,7 +87,7 @@ npm run test:e2e     # loads dist/chromium in real Chrome with Playwright
 ```
 Source is in `src/` (plain JavaScript, no build step, no dependencies); `manifests/` holds the per-browser manifests; strings are in `src/_locales/en/messages.json` — copy that folder to e.g. `_locales/fr/` to translate.
 
-## Testing status (v2.1.0)
+## Testing status (v2.2.0)
 
 | Check | Result |
 |---|---|
@@ -94,7 +96,10 @@ Source is in `src/` (plain JavaScript, no build step, no dependencies); `manifes
 | QR encoder decoded by OpenCV (versions 1–19, levels M and L, incl. Unicode) | 20/20 pass |
 | Real Chrome (Playwright, unpacked extension): permissions and install warnings, menu structure, add/update/copy/open from the menu, stale-ID safety, profile switching, popup add/edit/validate, + and ✎ tiles, keyboard reorder, remove/undo, search, profiles, share card + vCard + QR image, backup/restore with preview, deep links, accessibility names, and the 2.0.1 fixes (menu save while a form is open, editing a link deleted elsewhere, undo after a profile is deleted) | 51/51 pass |
 | Paste in real Chrome (`tests/e2e-paste.cjs`): plain, email, textarea at the cursor, Ctrl+Z undo, rich-text, framework input events, iframes, read-only fields and blocked pages fall back to copy | 13/13 pass |
-| Simulated Firefox background (fake `browser` API), including Paste | pass |
+| Sync (`tests/sync.test.mjs`): two simulated computers with delayed sync: concurrent adds, edits, deletes, reorders, renames, per-computer profile, migration from 2.x, quota fallback, tombstones | 22/22 pass |
+| Address bar (`tests/omnibox.test.mjs` + real Chrome `tests/e2e-omnibox.cjs`): matching and ranking, open in current/new/background tab, copy, email, manage, escaping, install warnings | 6/6 + 33/33 pass |
+| Other-link site list and ★ main links (`tests/popup-features.test.mjs` + real Chrome `tests/e2e-popup.cjs`): keyboard and mouse combobox, prefixes, wrong-site check, ★ toggle saved, vCard has only main links | 9/9 + 47/47 pass |
+| Simulated Firefox background (fake `browser` API), including Paste and the address bar | pass |
 
 **Not tested:**
 - **Real Firefox and Safari.** Neither was available in the build environment. Run `npm run firefox:lint` and `npm run firefox:run` to check Firefox.

@@ -6,9 +6,8 @@ set -euo pipefail
 cd "$(dirname "$0")"
 (cd ../../.. && node build.mjs)          # make sure dist/chromium is current
 node capture.cjs                          # real popup screens → shots/
-node render.cjs video                     # one encoded file per scene → scenes/
+node render.cjs video                     # one encoded file per scene → scenes/, list → concat.txt
 python3 audio.py                          # music bed + click sounds → audio.wav
-ls scenes/*.mp4 | grep -v part | sed "s/.*/file '&'/" > concat.txt
 ffmpeg -y -loglevel error -f concat -safe 0 -i concat.txt -c copy video_only.mp4
 ffmpeg -y -loglevel error -i audio.wav -af loudnorm=I=-20:TP=-2:LRA=7 -ar 48000 audio_norm.wav
 ffmpeg -y -loglevel error -i video_only.mp4 -i audio_norm.wav -map 0:v -map 1:a -c:v copy \

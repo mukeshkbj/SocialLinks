@@ -1,0 +1,277 @@
+{
+ "l": {
+  "default": "Open <match>L</match>inkedIn<dim> — </dim><url><match>l</match>inkedin.com/in/alex-morgan-dev</url>",
+  "suggestions": [
+   {
+    "content": "linkedin.com/in/alex-morgan-dev",
+    "description": "Open <match>L</match>inkedIn<dim> — </dim><url><match>l</match>inkedin.com/in/alex-morgan-dev</url>"
+   },
+   {
+    "content": "alex@morgan.dev",
+    "description": "Copy Emai<match>l</match><dim> — </dim><url>a<match>l</match>ex@morgan.dev</url>"
+   },
+   {
+    "content": "morgan.dev",
+    "description": "Open Portfo<match>l</match>io<dim> — </dim><url>morgan.dev</url>"
+   },
+   {
+    "content": "kaggle.com/alexmorgan",
+    "description": "Open Kagg<match>l</match>e<dim> — </dim><url>kagg<match>l</match>e.com/alexmorgan</url>"
+   },
+   {
+    "content": "github.com/alexmorgan",
+    "description": "Open GitHub<dim> — </dim><url>github.com/a<match>l</match>exmorgan</url>"
+   },
+   {
+    "content": "x.com/alexmorgan_dev",
+    "description": "Open X (Twitter)<dim> — </dim><url>x.com/a<match>l</match>exmorgan_dev</url>"
+   }
+  ],
+  "matches": [
+   {
+    "p": "linkedin",
+    "v": "alex-morgan-dev",
+    "url": "https://www.linkedin.com/in/alex-morgan-dev",
+    "id": "lk01"
+   },
+   {
+    "p": "email",
+    "v": "alex@morgan.dev",
+    "url": "mailto:alex@morgan.dev",
+    "id": "lk03"
+   },
+   {
+    "p": "custom",
+    "v": "https://morgan.dev/",
+    "url": "https://morgan.dev/",
+    "label": "Portfolio",
+    "main": true,
+    "id": "lk04"
+   },
+   {
+    "p": "custom",
+    "v": "https://www.kaggle.com/alexmorgan",
+    "url": "https://www.kaggle.com/alexmorgan",
+    "label": "Kaggle",
+    "id": "mwumplsqxazd18"
+   },
+   {
+    "p": "github",
+    "v": "alexmorgan",
+    "url": "https://github.com/alexmorgan",
+    "id": "lk02"
+   },
+   {
+    "p": "x",
+    "v": "alexmorgan_dev",
+    "url": "https://x.com/alexmorgan_dev",
+    "id": "lk05"
+   }
+  ],
+  "topIsDefault": true
+ },
+ "li": {
+  "default": "Open <match>Li</match>nkedIn<dim> — </dim><url><match>li</match>nkedin.com/in/alex-morgan-dev</url>",
+  "suggestions": [
+   {
+    "content": "linkedin.com/in/alex-morgan-dev",
+    "description": "Open <match>Li</match>nkedIn<dim> — </dim><url><match>li</match>nkedin.com/in/alex-morgan-dev</url>"
+   },
+   {
+    "content": "morgan.dev",
+    "description": "Open Portfo<match>li</match>o<dim> — </dim><url>morgan.dev</url>"
+   }
+  ],
+  "matches": [
+   {
+    "p": "linkedin",
+    "v": "alex-morgan-dev",
+    "url": "https://www.linkedin.com/in/alex-morgan-dev",
+    "id": "lk01"
+   },
+   {
+    "p": "custom",
+    "v": "https://morgan.dev/",
+    "url": "https://morgan.dev/",
+    "label": "Portfolio",
+    "main": true,
+    "id": "lk04"
+   }
+  ],
+  "topIsDefault": true
+ },
+ "lin": {
+  "default": "Open <match>Lin</match>kedIn<dim> — </dim><url><match>lin</match>kedin.com/in/alex-morgan-dev</url>",
+  "suggestions": [
+   {
+    "content": "linkedin.com/in/alex-morgan-dev",
+    "description": "Open <match>Lin</match>kedIn<dim> — </dim><url><match>lin</match>kedin.com/in/alex-morgan-dev</url>"
+   }
+  ],
+  "matches": [
+   {
+    "p": "linkedin",
+    "v": "alex-morgan-dev",
+    "url": "https://www.linkedin.com/in/alex-morgan-dev",
+    "id": "lk01"
+   }
+  ],
+  "topIsDefault": true
+ },
+ "c": {
+  "default": "Open LinkedIn<dim> — </dim><url>linkedin.<match>c</match>om/in/alex-morgan-dev</url>",
+  "suggestions": [
+   {
+    "content": "linkedin.com/in/alex-morgan-dev",
+    "description": "Open LinkedIn<dim> — </dim><url>linkedin.<match>c</match>om/in/alex-morgan-dev</url>"
+   },
+   {
+    "content": "github.com/alexmorgan",
+    "description": "Open GitHub<dim> — </dim><url>github.<match>c</match>om/alexmorgan</url>"
+   },
+   {
+    "content": "x.com/alexmorgan_dev",
+    "description": "Open X (Twitter)<dim> — </dim><url>x.<match>c</match>om/alexmorgan_dev</url>"
+   },
+   {
+    "content": "kaggle.com/alexmorgan",
+    "description": "Open Kaggle<dim> — </dim><url>kaggle.<match>c</match>om/alexmorgan</url>"
+   }
+  ],
+  "matches": [
+   {
+    "p": "linkedin",
+    "v": "alex-morgan-dev",
+    "url": "https://www.linkedin.com/in/alex-morgan-dev",
+    "id": "lk01"
+   },
+   {
+    "p": "github",
+    "v": "alexmorgan",
+    "url": "https://github.com/alexmorgan",
+    "id": "lk02"
+   },
+   {
+    "p": "x",
+    "v": "alexmorgan_dev",
+    "url": "https://x.com/alexmorgan_dev",
+    "id": "lk05"
+   },
+   {
+    "p": "custom",
+    "v": "https://www.kaggle.com/alexmorgan",
+    "url": "https://www.kaggle.com/alexmorgan",
+    "label": "Kaggle",
+    "id": "mwumplsqxazd18"
+   }
+  ],
+  "topIsDefault": true
+ },
+ "c g": {
+  "default": "Copy <match>G</match>itHub<dim> — </dim><url><match>g</match>ithub.com/alexmorgan</url>",
+  "suggestions": [
+   {
+    "content": "copy github.com/alexmorgan",
+    "description": "Copy <match>G</match>itHub<dim> — </dim><url><match>g</match>ithub.com/alexmorgan</url>"
+   },
+   {
+    "content": "copy kaggle.com/alexmorgan",
+    "description": "Copy Ka<match>g</match>gle<dim> — </dim><url>ka<match>g</match>gle.com/alexmorgan</url>"
+   },
+   {
+    "content": "copy linkedin.com/in/alex-morgan-dev",
+    "description": "Copy LinkedIn<dim> — </dim><url>linkedin.com/in/alex-mor<match>g</match>an-dev</url>"
+   },
+   {
+    "content": "copy alex@morgan.dev",
+    "description": "Copy Email<dim> — </dim><url>alex@mor<match>g</match>an.dev</url>"
+   },
+   {
+    "content": "copy morgan.dev",
+    "description": "Copy Portfolio<dim> — </dim><url>mor<match>g</match>an.dev</url>"
+   },
+   {
+    "content": "copy x.com/alexmorgan_dev",
+    "description": "Copy X (Twitter)<dim> — </dim><url>x.com/alexmor<match>g</match>an_dev</url>"
+   }
+  ],
+  "matches": [
+   {
+    "p": "github",
+    "v": "alexmorgan",
+    "url": "https://github.com/alexmorgan",
+    "id": "lk02"
+   },
+   {
+    "p": "custom",
+    "v": "https://www.kaggle.com/alexmorgan",
+    "url": "https://www.kaggle.com/alexmorgan",
+    "label": "Kaggle",
+    "id": "mwumplsqxazd18"
+   },
+   {
+    "p": "linkedin",
+    "v": "alex-morgan-dev",
+    "url": "https://www.linkedin.com/in/alex-morgan-dev",
+    "id": "lk01"
+   },
+   {
+    "p": "email",
+    "v": "alex@morgan.dev",
+    "url": "mailto:alex@morgan.dev",
+    "id": "lk03"
+   },
+   {
+    "p": "custom",
+    "v": "https://morgan.dev/",
+    "url": "https://morgan.dev/",
+    "label": "Portfolio",
+    "main": true,
+    "id": "lk04"
+   },
+   {
+    "p": "x",
+    "v": "alexmorgan_dev",
+    "url": "https://x.com/alexmorgan_dev",
+    "id": "lk05"
+   }
+  ],
+  "topIsDefault": true
+ },
+ "c gi": {
+  "default": "Copy <match>Gi</match>tHub<dim> — </dim><url><match>gi</match>thub.com/alexmorgan</url>",
+  "suggestions": [
+   {
+    "content": "copy github.com/alexmorgan",
+    "description": "Copy <match>Gi</match>tHub<dim> — </dim><url><match>gi</match>thub.com/alexmorgan</url>"
+   }
+  ],
+  "matches": [
+   {
+    "p": "github",
+    "v": "alexmorgan",
+    "url": "https://github.com/alexmorgan",
+    "id": "lk02"
+   }
+  ],
+  "topIsDefault": true
+ },
+ "c git": {
+  "default": "Copy <match>Git</match>Hub<dim> — </dim><url><match>git</match>hub.com/alexmorgan</url>",
+  "suggestions": [
+   {
+    "content": "copy github.com/alexmorgan",
+    "description": "Copy <match>Git</match>Hub<dim> — </dim><url><match>git</match>hub.com/alexmorgan</url>"
+   }
+  ],
+  "matches": [
+   {
+    "p": "github",
+    "v": "alexmorgan",
+    "url": "https://github.com/alexmorgan",
+    "id": "lk02"
+   }
+  ],
+  "topIsDefault": true
+ }
+}

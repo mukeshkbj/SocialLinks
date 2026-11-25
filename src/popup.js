@@ -7,19 +7,22 @@ const IS_FIREFOX = typeof browser !== 'undefined' && !!(browser.runtime && brows
 const CAN_FAVICON = (() => { try { return (api.runtime.getManifest().optional_permissions || []).includes('favicon'); } catch (e) { return false; } })();
 let favOn = false;   // site icons are opt-in: Chrome warns "Read the icons of the websites you visit"
 
-let data = null, cur = null, editId = null, lastRemoved = null, dragId = null, inTab = false, query = '';
+let data = null, cur = null, site = null, editId = null, lastRemoved = null, dragId = null, inTab = false, query = '';
 const prof = () => data.profiles.find(p => p.id === data.active) || data.profiles[0];
 
 SL.localise(document);
 
 // ---------- icons ----------
 function badgeHtml(p, l) {
+  const s = !favOn && l && SL.siteOf(l);
+  if (s) return monoHtml(s);
   if (favOn && l && p.id === 'custom') {
     const src = api.runtime.getURL('/_favicon/?pageUrl=' + encodeURIComponent(l.url) + '&size=32');
     return `<span class="mono fav" aria-hidden="true"><img src="${esc(src)}" alt="" data-ab="${esc(p.ab)}" data-c="${p.c}"></span>`;
   }
   return `<span class="mono" style="background:${p.c}" aria-hidden="true">${esc(p.ab)}</span>`;
 }
+const monoHtml = s => `<span class="mono" style="background:${s.c}" aria-hidden="true">${esc(s.ab)}</span>`;
 // fall back to a letter badge if a favicon can't load (no inline handlers allowed in extensions)
 document.addEventListener('error', e => {
   const img = e.target;
@@ -53,6 +56,7 @@ function render() {
       ${canMove ? `<button class="grip" data-act="grip" aria-label="${esc(t('lblReorder', name))}" title="${esc(t('lblReorderTip'))}">⋮⋮</button>` : ''}
       ${badgeHtml(p, l)}
       <div class="txt">${nameEl}${urlEl}</div>
+      <button class="ib star" data-act="main" aria-pressed="${SL.isMain(l)}" aria-label="${esc(t('btnMainX', name))}" title="${esc(t('tipMain'))}">${SL.isMain(l) ? '★' : '☆'}</button>
       <button class="ib" data-act="copy" aria-label="${esc(t('btnCopyX', name))}" title="${esc(t('btnCopy'))}">⧉</button>
       ${canMove ? `<button class="ib" data-act="up" aria-label="${esc(t('btnUpX', name))}" title="${esc(t('btnUp'))}" ${i === 0 ? 'disabled' : ''}>↑</button>
       <button class="ib" data-act="down" aria-label="${esc(t('btnDownX', name))}" title="${esc(t('btnDown'))}" ${i === links.length - 1 ? 'disabled' : ''}>↓</button>` : ''}
@@ -91,31 +95,123 @@ function choose(pid) {
 function pick(p, l) {
   cur = p; $('form').hidden = false; $('err').textContent = '';
   $('nameRow').hidden = !p.custom; $('nm').value = (l && l.label) || '';
+  site = p.custom && l ? SL.siteOf(l) : null;
+  closeList();
+  $('save').textContent = editId ? '✎ ' + t('btnSaveChanges') : '+ ' + t('btnAdd');
+  // a saved well-known site link at its plain profile address is shown as prefix + username again
+  const user = site && SL.sitePrefix(site) && SL.siteUser(site, l.url);
+  $('val').value = user || (l ? l.v : '');
+  applyField();
+  render();
+  if (p.custom && !l) { $('nm').focus(); openList(); } else $('val').focus();
+}
+const looksUrl = v => /^https?:\/\//i.test(v) || /^([\w-]+\.)+[a-z]{2,}(:\d+)?(\/|$|\?)/i.test(v.trim());
+// Label, prefix, type and placeholder of the value field for the current platform / site.
+function applyField() {
+  const p = cur, v = $('val').value;
+  if (p.custom && site) {
+    const pre = SL.sitePrefix(site);
+    $('lab').textContent = site.pattern ? t('lblUsername', site.name) : t('lblUrl', site.name);
+    $('prefix').textContent = pre; $('prefix').hidden = !pre || SL.siteLooksUrl(site, v);
+    $('val').type = site.pattern ? 'text' : 'url';
+    $('val').placeholder = SL.sitePlaceholder(site, t('phUsername'));
+    $('nmBadge').hidden = false; $('nmBadge').style.background = site.c; $('nmBadge').textContent = site.ab;
+    return;
+  }
+  $('nmBadge').hidden = true;
   $('lab').textContent = p.email ? t('lblEmail') : p.url ? t('lblUrl', p.name) : t('lblUsername', p.name);
-  const isUrl = !!(l && /^https?:\/\//i.test(l.v));
-  $('prefix').textContent = p.pre || ''; $('prefix').hidden = !p.pre || isUrl;
+  $('prefix').textContent = p.pre || ''; $('prefix').hidden = !p.pre || /^https?:\/\//i.test(v);
   $('val').type = p.email ? 'email' : p.url ? 'url' : 'text';
   $('val').placeholder = p.email ? 'you@example.com' : p.url ? 'https://…' : t('phUsername');
-  $('save').textContent = editId ? '✎ ' + t('btnSaveChanges') : '+ ' + t('btnAdd');
-  $('val').value = l ? l.v : '';
-  render();
-  (p.custom && !l ? $('nm') : $('val')).focus();
 }
+
+// ---------- "Other link" name: combobox of well-known sites (ARIA 1.2 combobox + listbox) ----------
+let opts = [], active = -1, statusTimer;
+function filterSites(q) {
+  q = q.trim().toLowerCase();
+  if (!q) return SL.SITES.slice();
+  const hit = s => s.name.toLowerCase().includes(q) || s.host.some(h => h.includes(q));
+  const starts = s => s.name.toLowerCase().startsWith(q) || s.name.toLowerCase().split(/\s+/).some(w => w.startsWith(q));
+  return SL.SITES.filter(hit).sort((a, b) => starts(b) - starts(a));
+}
+function mark(name, q) {
+  const i = q ? name.toLowerCase().indexOf(q.trim().toLowerCase()) : -1;
+  if (i < 0 || !q.trim()) return esc(name);
+  const n = q.trim().length;
+  return esc(name.slice(0, i)) + '<mark>' + esc(name.slice(i, i + n)) + '</mark>' + esc(name.slice(i + n));
+}
+function openList() {
+  const q = $('nm').value;
+  opts = filterSites(q);
+  if (!opts.length) { closeList(); return; }
+  active = Math.min(active, opts.length - 1);
+  $('nmList').innerHTML = opts.map((s, i) => `<li role="option" id="nmOpt${i}" data-i="${i}" aria-selected="${i === active}">${monoHtml(s)}<span class="nm">${mark(s.name, q)}</span><span class="h" aria-hidden="true">${esc(s.host[0] || '')}</span></li>`).join('');
+  $('nmList').hidden = false; $('nm').setAttribute('aria-expanded', 'true');
+  setActive(active);
+  clearTimeout(statusTimer);
+  statusTimer = setTimeout(() => { $('nmStatus').textContent = $('nmList').hidden ? '' : t('srSiteCount', String(opts.length)); }, 600);
+}
+function closeList() {
+  $('nmList').hidden = true; $('nm').setAttribute('aria-expanded', 'false'); $('nm').removeAttribute('aria-activedescendant');
+  active = -1; clearTimeout(statusTimer);
+}
+function setActive(i) {
+  active = i;
+  $('nmList').querySelectorAll('[role=option]').forEach((li, k) => li.setAttribute('aria-selected', k === i));
+  if (i < 0) { $('nm').removeAttribute('aria-activedescendant'); return; }
+  const li = $('nmOpt' + i); $('nm').setAttribute('aria-activedescendant', li.id); li.scrollIntoView({ block: 'nearest' });
+}
+function chooseSite(s) {
+  $('nm').value = s.name; site = s; closeList();
+  $('err').textContent = ''; applyField(); $('val').focus();
+}
+$('nm').addEventListener('input', () => {
+  site = SL.siteByName($('nm').value);              // typing a site's exact name counts as choosing it
+  applyField(); active = -1; openList();
+});
+$('nm').addEventListener('keydown', e => {
+  const open = !$('nmList').hidden;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (e.altKey) { if (e.key === 'ArrowDown') openList(); else closeList(); return; }
+    if (!open) { active = -1; openList(); if ($('nmList').hidden) return; setActive(e.key === 'ArrowDown' ? 0 : opts.length - 1); return; }
+    const n = opts.length;
+    setActive(e.key === 'ArrowDown' ? (active + 1) % n : (active <= 0 ? n - 1 : active - 1));
+  } else if (e.key === 'Enter' && open && active >= 0) {
+    e.preventDefault(); chooseSite(opts[active]);
+  } else if (e.key === 'Escape' && open) {
+    e.preventDefault(); e.stopPropagation(); closeList();
+  } else if (e.key === 'Tab' && open) closeList();
+});
+$('nm').addEventListener('click', () => { if ($('nmList').hidden) openList(); });
+$('nm').addEventListener('blur', closeList);
+$('nmList').addEventListener('mousedown', e => e.preventDefault());   // keep focus in the combobox
+$('nmList').addEventListener('click', e => { const li = e.target.closest('[role=option]'); if (li) chooseSite(opts[+li.dataset.i]); });
+$('val').addEventListener('input', () => { if (cur) applyField(); });
+// A pasted/typed address on a known site fills the name ("Hugging Face", not "huggingface.co").
+$('val').addEventListener('change', () => {
+  if (!cur || !cur.custom || $('nm').value.trim() || !looksUrl($('val').value)) return;
+  const s = SL.siteByHost($('val').value.trim());
+  if (s) { $('nm').value = s.name; site = s; applyField(); }
+});
 
 $('addBtn').onclick = () => openSheet($('sheet').hidden);
 $('grid').onclick = e => { const b = e.target.closest('.pf'); if (b) choose(b.dataset.p); };
 $('cancel').onclick = () => openSheet(false);
 $('form').onsubmit = async e => {
   e.preventDefault();
-  const r = SL.validate(cur, $('val').value);
+  const r = cur.custom && site ? SL.validateSite(site, $('val').value) : SL.validate(cur, $('val').value);
   if (r.e) { $('err').textContent = t(r.e, r.sub); $('val').focus(); return; }
   const P = prof();
   const item = { id: editId || SL.newId(), p: cur.id, v: r.v, url: r.url };
   if (cur.custom) {
-    let label = $('nm').value.trim();
+    let label = site ? site.name : $('nm').value.trim();
+    if (!label) { const s = SL.siteByHost(r.url); label = s && s.name; }
     if (!label) { try { label = SL.cleanHost(new URL(r.url).hostname); } catch (err) { label = cur.name; } }
     item.label = label.slice(0, 40);
   }
+  const old = editId && byId(editId);
+  if (old && typeof old.main === 'boolean') item.main = old.main;     // keep the user's ★ choice
   if (P.links.some(l => SL.sameUrl(l.url, item.url) && l.id !== item.id)) { $('err').textContent = t('errDuplicate'); return; }
   const wasEdit = !!editId;
   const at = wasEdit ? P.links.findIndex(l => l.id === editId) : -1;
@@ -136,6 +232,13 @@ $('links').onclick = async e => {
   const id = b.closest('.item').dataset.id, l = byId(id); if (!l) return;
   const act = b.dataset.act;
   if (act === 'copy') copy(SL.linkValue(l));
+  else if (act === 'main') {
+    l.main = !SL.isMain(l);
+    await persist(); render();
+    $('links').querySelector(`[data-id="${CSS.escape(id)}"] [data-act=main]`)?.focus();
+    toast(t(l.main ? 'toastMainOn' : 'toastMainOff', SL.linkName(l)));
+    if (!$('sharePanel').hidden) drawShare();
+  }
   else if (act === 'up' || act === 'down') {
     if (await move(id, act === 'up' ? -1 : 1)) {
       const nb = $('links').querySelector(`[data-id="${CSS.escape(id)}"] [data-act="${act}"]`);
@@ -260,12 +363,14 @@ function openInTab(hash) { api.tabs.create({ url: api.runtime.getURL('popup.html
 
 // ---------- share card ----------
 function drawShare() {
-  const P = prof(), text = SL.vcard($('owner').value || P.name, P.links);
+  const P = prof(), main = SL.mainLinks(P.links), text = SL.vcard($('owner').value || P.name, main);
+  $('mainCount').textContent = !P.links.length ? '' : main.length ? t('mainCount', String(main.length)) : t('mainNone');
+  $('mainCount').hidden = !P.links.length;
   try {
     const q = SL.qr.encode(text, 'M');
     SL.qr.toCanvas(q, $('qr'), 440);
     $('qr').hidden = false;
-    $('qrNote').textContent = !P.links.length ? t('qrEmpty') : q.version > 20 ? t('qrDense') : t('qrHint', String(P.links.length));
+    $('qrNote').textContent = !P.links.length ? t('qrEmpty') : q.version > 20 ? t('qrDense') : main.length ? t('qrHint', String(main.length)) : '';
   } catch (e) { $('qr').hidden = true; $('qrNote').textContent = t('qrTooLong'); }
 }
 $('shareBtn').onclick = () => {
@@ -274,7 +379,7 @@ $('shareBtn').onclick = () => {
 };
 let ownerTimer;
 $('owner').addEventListener('input', () => { drawShare(); clearTimeout(ownerTimer); ownerTimer = setTimeout(() => { prof().owner = $('owner').value.trim().slice(0, 60); persist(); }, 500); });
-$('dlVcf').onclick = () => { const P = prof(); download(safeName($('owner').value || P.name) + '.vcf', new Blob([SL.vcard($('owner').value || P.name, P.links)], { type: 'text/vcard' })); toast(t('toastDownloaded')); };
+$('dlVcf').onclick = () => { const P = prof(); download(safeName($('owner').value || P.name) + '.vcf', new Blob([SL.vcard($('owner').value || P.name, SL.mainLinks(P.links))], { type: 'text/vcard' })); toast(t('toastDownloaded')); };
 $('dlPng').onclick = () => $('qr').toBlob(b => { if (b) { download(safeName($('owner').value || prof().name) + '-qr.png', b); toast(t('toastDownloaded')); } });
 $('shareClose').onclick = () => { $('sharePanel').hidden = true; $('shareBtn').focus(); };
 
@@ -337,6 +442,7 @@ async function refresh() {
   const fresh = await SL.store.load();
   if (JSON.stringify(fresh) === JSON.stringify(SL.store.clean(data))) return;   // our own save echoing back
   data = fresh; render();
+  if (!$('sharePanel').hidden) drawShare();
 }
 SL.store.onChange(() => { if (dragId) staleDuringDrag = true; else refresh(); });
 

@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.2.0 — 2026-11-24
+### Added
+- **Address-bar shortcut:** type `sl` + space, then a name. Enter opens the best match (current, new or background tab, as the browser asks); `sl copy <name>` / `sl c <name>` copies; `sl manage` opens the manager; email links are copied. No new permissions or install warnings.
+- **Site suggestions for Other links:** a keyboard- and screen-reader-friendly list of 35 well-known sites fills in the name and address pattern; typing a known site's URL names it automatically; right-clicking a known site's link saves it with the site's name (e.g. "Kaggle"); a URL on the wrong site is rejected.
+- **★ main links:** the share card's QR code and vCard include only links marked main. LinkedIn, GitHub, Website and Email are main by default; toggle ★ on any link.
+
+### Changed
+- **Safer syncing:** links are stored one per sync item instead of one document, so edits made on two computers at about the same time both survive. Deletions are kept for 30 days so an out-of-date computer can't bring a link back. The profile you're using is now chosen per computer. Data from 2.x is migrated automatically on first run. **Update every computer to 2.2**: a computer still on 2.x won't see changes made on 2.2.
+- The address bar no longer lists its top match twice.
+- The address bar no longer matches every Other link on words like "lin" (from the generic name "Other link"); Other links match on their own name and address.
+- Demo video re-recorded for 2.2: Paste here, the `sl` address-bar shortcut, site suggestions and ★ main links (1:35).
+
+### Fixed
+- A load that started before a save could put older data back into the background's memory.
+
 ## 2.1.0 — 2026-11-24
 ### Added
 - **Paste here**: right-click in a text box › Social links › any link › Paste here types it into that box. Works in plain fields, email/URL fields, textareas (at the cursor), rich-text editors and fields inside frames; Ctrl+Z undoes it; page frameworks see a normal input event. Where a page can't be typed into, the link is copied instead (badge ⧉) so Ctrl+V works.

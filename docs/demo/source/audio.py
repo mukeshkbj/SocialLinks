@@ -1,12 +1,15 @@
 # Synthesises a soft music bed + mouse-click sounds timed to the video. Output: audio.wav (48 kHz stereo)
 import numpy as np, wave
 SR = 48000
-DUR = [4.5, 4.2, 12, 5.4, 8, 13, 5.5, 6, 5.2, 6.5, 6.5]
+DUR = [4.5, 4.2, 12, 5.4, 9.5, 8, 15.5, 6.5, 6, 5.5, 5.2, 6.5, 6.5]
 T = sum(DUR); N = int(T * SR); t = np.arange(N) / SR
 start = np.cumsum([0] + DUR[:-1])
 # clicks (scene index, time in scene) — mirror clickRing() calls in stage.html
-CLICKS = [(2, .65), (2, 4.6), (2, 9.6), (3, .85), (3, 3.75), (4, 1.15), (4, 4.45), (5, .9), (5, 3.95), (5, 6.95), (5, 10.2), (6, 1.7)]
+CLICKS = [(2, .65), (2, 4.6), (2, 9.6), (3, .85), (3, 3.75), (4, .5), (5, 1.15), (5, 4.45), (6, .9), (6, 3.95), (6, 6.95), (6, 9.75), (6, 12.3), (7, 1.75), (9, 1.7)]
 PASTE = []   # Paste here types the link in on the click itself
+# typing in the address-bar scene (scene 4): sl␣lin⏎ … sl␣c git⏎
+KEYS = [(4, .7), (4, .88), (4, 1.25), (4, 1.6), (4, 1.9), (4, 2.2), (4, 3.0),
+        (4, 5.15), (4, 5.33), (4, 5.55)] + [(4, 5.8 + .22 * i) for i in range(5)] + [(4, 7.2)]
 
 def note(f): return 440 * 2 ** ((f - 69) / 12)
 # I – vi – IV – V in D major, 4 s per chord, warm pad (sine + soft 2nd/3rd harmonics)
@@ -48,6 +51,7 @@ def click(at, gain=.5, tone=2400):
     c = (rng.standard_normal(n) * .5 + np.sin(2 * np.pi * tone * tt)) * np.exp(-tt * 180)
     sfx[n0:n0 + n] += gain * c[: max(0, min(n, N - n0))]
 for s, x in CLICKS: click(start[s] + x)
+for s, x in KEYS: click(start[s] + x, .22, 1100)
 for s, x in PASTE: click(start[s] + x, .35, 1500); click(start[s] + x + .07, .3, 1800)
 mix = music + .35 * sfx
 mix /= max(1, np.abs(mix).max() / .9)

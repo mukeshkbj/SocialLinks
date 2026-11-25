@@ -3,7 +3,7 @@ const { chromium } = require('playwright');const fs=require('fs'),os=require('os
 const ctx=await chromium.launchPersistentContext(fs.mkdtempSync(os.tmpdir()+'/m'),{executablePath: process.env.CHROME || undefined,headless:true,viewport:{width:400,height:900},args:['--headless=new','--disable-features=DisableLoadExtensionCommandLineSwitch',`--disable-extensions-except=${EXT}`,`--load-extension=${EXT}`]});
 const sw=ctx.serviceWorkers()[0]||await ctx.waitForEvent('serviceworker');const id=sw.url().split('/')[2];
 const src=fs.readFileSync('capture.cjs','utf8');const DEMO=eval('('+src.slice(src.indexOf('{ v: 2'),src.indexOf('};\n(async')+1)+')');
-await sw.evaluate(d=>chrome.storage.sync.set({data:d}),DEMO);
+await sw.evaluate(d=>SL.store.save(d),DEMO);
 const pg=await ctx.newPage();await pg.goto(`chrome-extension://${id}/popup.html`);await pg.waitForSelector('.item');
 const c=async s=>pg.evaluate(s=>{const r=document.querySelector(s).getBoundingClientRect();return [Math.round(r.left+r.width/2),Math.round(r.top+r.height/2)]},s);
 const out={profSel:await c('#profSel')};

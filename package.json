@@ -1,17 +1,20 @@
 {
   "name": "social-links-extension",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "private": true,
   "description": "Right-click open, copy and add your social links on any website. Chrome, Edge, Firefox, Safari.",
   "license": "MIT",
   "scripts": {
     "build": "node build.mjs",
-    "test": "node build.mjs && node --test tests/unit.test.mjs tests/regressions.test.mjs tests/firefox-sim.test.mjs",
+    "test": "node build.mjs && node --test tests/unit.test.mjs tests/regressions.test.mjs tests/firefox-sim.test.mjs tests/sync.test.mjs tests/omnibox.test.mjs tests/popup-features.test.mjs",
     "test:qr": "node tests/qr-gen.cjs && python3 tests/qr_decode.py",
-    "test:e2e": "node build.mjs && node tests/e2e.cjs && node tests/e2e-paste.cjs",
+    "test:e2e": "node build.mjs && node tests/e2e.cjs && node tests/e2e-paste.cjs && node tests/e2e-omnibox.cjs && node tests/e2e-popup.cjs",
     "firefox:lint": "npx web-ext lint --source-dir dist/firefox",
     "firefox:run": "npx web-ext run --source-dir dist/firefox",
-    "firefox:sign": "npx web-ext sign --source-dir dist/firefox --channel unlisted"
+    "firefox:sign": "npx web-ext sign --source-dir dist/firefox --channel unlisted",
+    "test:popup": "node build.mjs && node --test tests/popup-features.test.mjs && node tests/e2e-popup.cjs",
+    "release": "node build.mjs && npx web-ext lint --source-dir dist/firefox",
+    "store:assets": "node build.mjs && node store/release/make-assets.cjs \"$CHROME\""
   },
   "devDependencies": {
     "playwright": "^1.50.0"

@@ -6,7 +6,7 @@
   "message": "Social links"
  },
  "extDescription": {
-  "message": "Keep your LinkedIn, GitHub and other profile links one right-click away on any website. Paste, copy, open or add — no access to your browsing."
+  "message": "Paste your LinkedIn, GitHub and other profile links into any form with one right-click. No access to your browsing."
  },
  "cmdOpen": {
   "message": "Open Social Links"
@@ -153,7 +153,7 @@
   "message": "How should it be applied?"
  },
  "phName": {
-  "message": "e.g. Portfolio, Kaggle, Behance"
+  "message": "Search sites (Kaggle…) or type any name"
  },
  "phSearch": {
   "message": "Search links…"
@@ -337,5 +337,56 @@
  },
  "menuPaste": {
   "message": "Paste here"
+ },
+ "omniUsage": {
+  "message": "Type a link name to open it, copy <name> to copy it, or manage to edit your links",
+  "description": "Address bar (after typing sl and a space): default hint"
+ },
+ "omniOpen": {
+  "message": "Open $1",
+  "description": "Address bar suggestion; $1 is the link name and address"
+ },
+ "omniCopy": {
+  "message": "Copy $1",
+  "description": "Address bar suggestion; $1 is the link name and address"
+ },
+ "omniManage": {
+  "message": "$1: open Social Links to add, edit or reorder links",
+  "description": "Address bar suggestion; $1 is the word manage"
+ },
+ "omniNoMatch": {
+  "message": "No link matches \"$1\". Try a site name, copy <name>, or manage",
+  "description": "Address bar: nothing matched what was typed ($1)"
+ },
+ "omniNoLinks": {
+  "message": "No links in $1 yet. Press Enter to add some",
+  "description": "Address bar: active profile ($1) has no links"
+ },
+ "lblSiteList": {
+  "message": "Well-known sites"
+ },
+ "srSiteCount": {
+  "message": "$1 suggestions. Use up and down arrows to choose."
+ },
+ "errPhone": {
+  "message": "Enter the phone number with its country code, e.g. 447700900123."
+ },
+ "btnMainX": {
+  "message": "Show $1 on the share card"
+ },
+ "tipMain": {
+  "message": "Main link: shown on the share card"
+ },
+ "toastMainOn": {
+  "message": "$1 is on the share card."
+ },
+ "toastMainOff": {
+  "message": "$1 is no longer on the share card."
+ },
+ "mainCount": {
+  "message": "$1 main link(s) on this card. Press ★ next to a link to add or remove it."
+ },
+ "mainNone": {
+  "message": "No main links on this card yet. Press ☆ next to a link in your list to put it on the card."
  }
 }

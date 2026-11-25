@@ -31,7 +31,9 @@ const ok = (cond, name) => { if (cond) { pass++; console.log('PASS', name); } el
   const readClip = async () => { await clip.bringToFront(); return clip.evaluate(() => navigator.clipboard.readText()); };
   const menu = () => sw.evaluate(() => globalThis.__sl.menu().then(m => m.map(x => ({ id: x.id, parentId: x.parentId, title: x.title, type: x.type, checked: x.checked, contexts: x.contexts }))));
   const click = (info, tab) => sw.evaluate(([i, t]) => globalThis.__sl.onClick(i, t).then(() => globalThis.__sl.rebuild()), [info, tab || { id: -1, index: 0 }]);
-  const data = () => sw.evaluate(() => chrome.storage.sync.get('data').then(r => r.data));
+  const data = () => sw.evaluate(() => SL.store.load());
+  // popup actions save, then redraw: wait for the list to settle before counting
+  const items = async (pg, n) => { await pg.waitForFunction(n => document.querySelectorAll('.item').length === n, n, { timeout: 3000 }).catch(() => {}); return pg.locator('.item').count(); };
 
   // --- permissions
   const perms = await sw.evaluate(() => chrome.runtime.getManifest().permissions);
@@ -68,7 +70,7 @@ const ok = (cond, name) => { if (cond) { pass++; console.log('PASS', name); } el
   await click({ menuItemId: 'save-link', linkUrl: 'javascript:alert(1)' });
   d = await data();
   const W = d.profiles[0].links;
-  ok(W.length === 3 && W.some(l => l.p === 'email') && W.some(l => l.p === 'custom' && l.label === 'kaggle.com'), 'selection email + page as Other link saved; javascript: rejected');
+  ok(W.length === 3 && W.some(l => l.p === 'email') && W.some(l => l.p === 'custom' && l.label === 'Kaggle'), 'selection email + page as Other link saved; javascript: rejected');
   const em = W.find(l => l.p === 'email');
   m = await menu();
   ok(m.some(x => x.id === 'c:' + em.id && x.parentId === 'l:' + em.id) && m.some(x => x.id === 'v:' + em.id) && !m.some(x => x.id === 'o:' + em.id), 'email can be copied or pasted, never opened');
@@ -88,7 +90,7 @@ const ok = (cond, name) => { if (cond) { pass++; console.log('PASS', name); } el
   await opened.close();
 
   // --- stale id never opens the wrong link
-  await sw.evaluate(async id => { const r = await chrome.storage.sync.get('data'); r.data.profiles[0].links = r.data.profiles[0].links.filter(l => l.id !== id); await chrome.storage.sync.set({ data: r.data }); }, gh.id);
+  await sw.evaluate(async id => { const d = await SL.store.load(); d.profiles[0].links = d.profiles[0].links.filter(l => l.id !== id); await SL.store.save(d); }, gh.id);
   await page.waitForTimeout(300);
   let extra = false; ctx.once('page', () => { extra = true; });
   await click({ menuItemId: 'o:' + gh.id });
@@ -115,7 +117,7 @@ const ok = (cond, name) => { if (cond) { pass++; console.log('PASS', name); } el
   ok(!(await page.isHidden('#nameRow')), 'Other link asks for a name');
   await page.fill('#nm', 'Portfolio'); await page.fill('#val', 'https://mukesh.dev'); await page.click('#save');
   await page.waitForTimeout(200);
-  ok((await page.locator('.item').count()) === 4, 'links added in popup');
+  ok((await items(page, 4)) === 4, 'links added in popup');
   await page.click('#addBtn'); await page.click('[data-p=linkedin]');
   ok((await page.inputValue('#val')) === 'jane-doe' && (await page.textContent('#save')).includes('Save changes'), 'clicking a ✎ tile edits the existing link');
   await page.keyboard.press('Escape');
@@ -128,9 +130,9 @@ const ok = (cond, name) => { if (cond) { pass++; console.log('PASS', name); } el
   ok(await page.evaluate(() => document.activeElement.classList.contains('grip')), 'focus stays on the moved grip');
   // remove + undo
   await page.click('.item:nth-child(1) [data-act=del]');
-  ok((await page.locator('.item').count()) === 3, 'remove');
+  ok((await items(page, 3)) === 3, 'remove');
   await page.click('#undo');
-  ok((await page.locator('.item').count()) === 4, 'undo restores');
+  ok((await items(page, 4)) === 4, 'undo restores');
   // a11y basics
   const unlabeled = await page.evaluate(() => [...document.querySelectorAll('button')].filter(b => !b.hidden && b.offsetParent && !(b.getAttribute('aria-label') || b.textContent.trim())).length);
   ok(unlabeled === 0, 'every visible button has an accessible name');
@@ -139,11 +141,11 @@ const ok = (cond, name) => { if (cond) { pass++; console.log('PASS', name); } el
 
   // search appears after 10 links
   ok(await page.isHidden('#searchWrap'), 'no search with few links');
-  await sw.evaluate(async () => { const r = await chrome.storage.sync.get('data'); for (let i = 0; i < 8; i++) r.data.profiles[0].links.push({ id: 'zz' + i, p: 'custom', v: 'x', url: 'https://site' + i + '.example.org/', label: 'Site ' + i }); await chrome.storage.sync.set({ data: r.data }); });
+  await sw.evaluate(async () => { const d = await SL.store.load(); for (let i = 0; i < 8; i++) d.profiles[0].links.push({ id: 'zz' + i, p: 'custom', v: 'x', url: 'https://site' + i + '.example.org/', label: 'Site ' + i }); await SL.store.save(d); });
   await page.reload(); await page.waitForSelector('.item');
   ok(!(await page.isHidden('#searchWrap')), 'search appears with more than 10 links');
   await page.fill('#search', 'portfolio');
-  ok((await page.locator('.item').count()) === 1, 'search filters the list');
+  ok((await items(page, 1)) === 1, 'search filters the list');
   await page.fill('#search', '');
 
   // profiles: new, rename, delete
@@ -179,7 +181,7 @@ const ok = (cond, name) => { if (cond) { pass++; console.log('PASS', name); } el
   const bkJson = JSON.parse(fs.readFileSync(bkPath, 'utf8'));
   ok(bkJson.app === 'social-links' && bkJson.profiles.length === 2, 'backup exports all profiles');
   // wipe a link, then restore with merge from a tab
-  await sw.evaluate(async () => { const r = await chrome.storage.sync.get('data'); r.data.profiles[0].links = r.data.profiles[0].links.filter(l => l.p !== 'linkedin'); await chrome.storage.sync.set({ data: r.data }); });
+  await sw.evaluate(async () => { const d = await SL.store.load(); d.profiles[0].links = d.profiles[0].links.filter(l => l.p !== 'linkedin'); await SL.store.save(d); });
   const tab = await ctx.newPage(); await tab.goto(POPUP + '#import');
   await tab.waitForSelector('#importPanel:not([hidden])');
   await tab.setInputFiles('#file', bkPath);
@@ -211,7 +213,7 @@ const ok = (cond, name) => { if (cond) { pass++; console.log('PASS', name); } el
   // edit a link that another window deletes before saving
   const beh = W2.find(l => l.label === 'Behance');
   await r.click(`[data-id="${beh.id}"] [data-act=edit]`);
-  await sw.evaluate(async id => { const x = await chrome.storage.sync.get('data'); const P = x.data.profiles.find(p => p.id === x.data.active); P.links = P.links.filter(l => l.id !== id); await chrome.storage.sync.set({ data: x.data }); }, beh.id);
+  await sw.evaluate(async id => { const d = await SL.store.load(); const P = d.profiles.find(p => p.id === d.active); P.links = P.links.filter(l => l.id !== id); await SL.store.save(d); }, beh.id);
   await r.waitForTimeout(300);
   await r.fill('#val', 'https://www.behance.net/alexmorgan2'); await r.click('#save'); await r.waitForTimeout(300);
   d = await data(); W2 = d.profiles.find(p => p.id === d.active).links;
@@ -226,6 +228,7 @@ const ok = (cond, name) => { if (cond) { pass++; console.log('PASS', name); } el
 
   // add-from-menu deep link opens the right form
   const deep = await ctx.newPage(); await deep.goto(POPUP + '#add-x');
+  await deep.waitForSelector('#form:not([hidden])', { timeout: 3000 }).catch(() => {});
   ok(!(await deep.isHidden('#form')) && /X \(Twitter\)/.test(await deep.textContent('#lab')), '"+ Add X" from the menu opens the X form');
   await deep.close();
 

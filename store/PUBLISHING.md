@@ -1,3 +1,5 @@
+[![CI](https://github.com/mukeshkbj/SocialLinks/actions/workflows/ci.yml/badge.svg)](https://github.com/mukeshkbj/SocialLinks/actions/workflows/ci.yml)
+
 # Publishing checklist
 
 Before any store: `npm test`, `npm run test:e2e`, then bump `version` in both files in `manifests/` and in `package.json`, add a CHANGELOG entry, and run `npm run build`.
