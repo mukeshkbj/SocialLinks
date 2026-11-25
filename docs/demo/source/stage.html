@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Social Links demo stage</title>
+<style>
+/* 1920x1080 stage. Every frame is drawn by render(scene, t) — deterministic, no CSS animation. */
+@font-face{font-family:Inter;src:local('Inter'),local('Inter Regular')}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:#06221d;font-family:Inter,system-ui,sans-serif;color:#121816}
+#bg{position:absolute;inset:0;background:radial-gradient(1200px 700px at 75% 10%,#0d4a40 0%,#06221d 60%),#06221d}
+.hide{opacity:0}
+/* browser window (generic, unbranded) */
+#win{position:absolute;left:176px;top:36px;width:1568px;height:870px;border-radius:16px;background:#fff;overflow:hidden;box-shadow:0 40px 90px -20px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.06)}
+#tabs{height:52px;background:#e6ebe9;display:flex;align-items:flex-end;padding:0 14px;gap:6px}
+.dots{display:flex;gap:9px;align-self:center;margin-right:16px}.dots i{width:14px;height:14px;border-radius:50%;background:#c9d1ce;display:block}
+.tab{height:42px;min-width:290px;max-width:330px;background:#f3f6f5;border-radius:12px 12px 0 0;display:flex;align-items:center;gap:10px;padding:0 16px;font-size:17px;color:#3a4542;white-space:nowrap;overflow:hidden}
+.tab.on{background:#fff;color:#121816}
+.tab b{width:18px;height:18px;border-radius:5px;flex:none}
+#bar{height:62px;display:flex;align-items:center;gap:14px;padding:0 18px;border-bottom:1px solid #e1e6e4;background:#fff}
+.nav{color:#7a8581;font-size:22px;width:28px;text-align:center}
+#url{flex:1;height:42px;border-radius:21px;background:#f0f3f2;display:flex;align-items:center;padding:0 20px;font-size:18px;color:#3a4542}
+#url span{color:#121816}
+#ext{position:relative;width:40px;height:40px;border-radius:10px;display:grid;place-items:center}
+#ext img{width:26px;height:26px}
+#ext.hot{background:#e3f2ef}
+#badge{position:absolute;right:-6px;bottom:-4px;min-width:22px;height:20px;border-radius:6px;font:700 13px/20px Inter,sans-serif;color:#fff;text-align:center;padding:0 4px}
+.prof{width:34px;height:34px;border-radius:50%;background:#2c3a37;color:#fff;font:600 14px/34px Inter;text-align:center}
+#page{position:absolute;left:0;right:0;top:114px;bottom:0;overflow:hidden;background:#fff}
+.pg{position:absolute;inset:0}
+/* job application page (fictional) */
+#pForm{background:#f6f4ef}
+.jh{height:84px;background:#1d2b4f;color:#fff;display:flex;align-items:center;padding:0 64px;font:700 26px Inter;gap:14px}
+.jh i{width:34px;height:34px;border-radius:9px;background:#f2b84b;display:block}
+.jbody{width:860px;margin:42px auto 0;background:#fff;border-radius:14px;padding:38px 48px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.jbody h2{font:700 30px Inter;margin-bottom:6px;color:#1d2b4f}.jbody p{color:#5b6763;font-size:18px;margin-bottom:24px}
+.fld{margin-bottom:18px}.fld label{display:block;font:600 17px Inter;margin-bottom:7px;color:#2b3331}
+.inp{height:50px;border:1.5px solid #cfd6d3;border-radius:9px;padding:0 16px;display:flex;align-items:center;font-size:19px;color:#121816;background:#fff}
+.inp.focus{border-color:#1d6fd6;box-shadow:0 0 0 3px rgba(29,111,214,.18)}
+.inp .ph{color:#9aa4a1}
+.caret{display:inline-block;width:2px;height:24px;background:#121816;margin-left:1px}
+/* personal site (fictional) */
+#pSite{background:#101418;color:#e9efed}
+.sh{padding:90px 140px 0}
+.sh .k{color:#7fd6c3;font:600 20px Inter;margin-bottom:14px}
+.sh h1{font:800 76px/1.02 Inter;letter-spacing:-.02em;margin-bottom:22px}
+.sh p{font-size:24px;color:#a9b5b1;max-width:880px;line-height:1.5;margin-bottom:40px}
+.lk{display:flex;gap:18px}
+.lk a{font:600 21px Inter;color:#101418;background:#7fd6c3;border-radius:12px;padding:14px 22px;text-decoration:none}
+.lk a.o{background:transparent;color:#e9efed;border:1.5px solid #3d4a47}
+/* new-tab page */
+#pNew{background:#fff;display:grid;place-items:center}
+#pNew div{font:700 42px Inter;color:#121816}#pNew p{font-size:20px;color:#5b6763;text-align:center;margin-top:10px}
+/* context menu: neutral desktop style */
+.menu{position:absolute;min-width:250px;background:#fbfbfb;border:1px solid #d9dddc;border-radius:10px;box-shadow:0 14px 34px -8px rgba(0,0,0,.35);padding:7px;font-size:18px;color:#1c1f1e;z-index:20}
+.mi{height:40px;display:flex;align-items:center;gap:12px;padding:0 14px;border-radius:6px;white-space:nowrap}
+.mi.hl{background:#e3e8e6}
+.mi .ic{width:20px;height:20px;flex:none;display:grid;place-items:center}
+.mi .ic img{width:18px;height:18px}
+.mi .ar{margin-left:auto;padding-left:26px;color:#6b7672;font-size:15px}
+.mi.dim{color:#9aa4a1}
+.sep{height:1px;background:#e1e5e3;margin:6px 4px}
+/* popup */
+#popup{position:absolute;right:62px;top:104px;width:500px;border-radius:12px;background:#fff;overflow:hidden;box-shadow:0 18px 50px -10px rgba(0,0,0,.45),0 0 0 1px rgba(0,0,0,.08);z-index:15}
+#popup img{position:absolute;left:0;top:0;width:500px}
+/* title cards */
+.card{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 170px;color:#f2f7f5;z-index:30}
+.card .logo{width:120px;height:120px;border-radius:28px;margin-bottom:38px}
+.card h1{font:800 120px/1 Inter;letter-spacing:-.03em;margin-bottom:26px}
+.card h2{font:600 52px/1.15 Inter;color:#bfe9df;max-width:1300px;letter-spacing:-.01em}
+.card .meta{margin-top:44px;font:500 30px Inter;color:#8fb3ab;display:flex;gap:28px}
+.card .meta b{color:#f2f7f5;font-weight:600}
+.rows{margin-top:46px;display:grid;gap:22px;max-width:1250px}
+.row{display:flex;align-items:center;gap:26px;font:500 38px Inter;color:#e3eeeb}
+.row i{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-style:normal;font:700 30px Inter;flex:none}
+.row i.y{background:#3fd1b6;color:#04211b}.row i.n{background:#21403a;color:#9fc8bf}
+.warn{margin-top:40px;display:inline-flex;align-items:center;gap:18px;background:#fff;color:#121816;border-radius:16px;padding:20px 28px;font:500 30px Inter;align-self:flex-start}
+.warn small{display:block;font-size:20px;color:#5b6763;margin-bottom:4px}
+.url{margin-top:44px;font:600 44px Inter;color:#3fd1b6}
+/* caption */
+#cap{position:absolute;left:0;right:0;top:922px;height:140px;display:flex;align-items:center;justify-content:center;text-align:center;font:600 42px/1.2 Inter;color:#f2f7f5;letter-spacing:-.01em;padding:0 120px;z-index:25}
+#cap em{font-style:normal;color:#3fd1b6}
+#cursor{position:absolute;width:34px;height:48px;z-index:40;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35))}
+#click{position:absolute;width:56px;height:56px;border-radius:50%;border:3px solid #3fd1b6;z-index:39;transform:translate(-50%,-50%)}
+#fade{position:absolute;inset:0;background:#06221d;z-index:50;pointer-events:none}
+#key{position:absolute;z-index:41;background:#121816;color:#fff;font:700 30px Inter;border-radius:12px;padding:12px 20px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+</style></head>
+<body>
+<div id="bg"></div>
+
+<div id="win">
+  <div id="tabs"><div class="dots"><i></i><i></i><i></i></div>
+    <div class="tab on" id="tab1"><b id="fav1"></b><span id="tt1"></span></div>
+    <div class="tab" id="tab2"><b style="background:#101418"></b><span>morgan.dev</span></div>
+  </div>
+  <div id="bar"><div class="nav">‹</div><div class="nav">›</div><div class="nav">↻</div>
+    <div id="url"></div>
+    <div id="ext"><img src="shots/icon.png" alt=""><div id="badge"></div></div>
+    <div class="prof">AM</div></div>
+  <div id="page">
+    <div class="pg" id="pForm">
+      <div class="jh"><i></i>Northwind Robotics · Careers</div>
+      <div class="jbody">
+        <h2>Junior Robotics Engineer</h2><p>Application · step 2 of 3 · your profiles</p>
+        <div class="fld"><label>Full name</label><div class="inp">Alex Morgan</div></div>
+        <div class="fld"><label>LinkedIn profile URL</label><div class="inp" id="fLi"></div></div>
+        <div class="fld"><label>GitHub profile URL</label><div class="inp" id="fGh"></div></div>
+        <div class="fld"><label>Portfolio or website</label><div class="inp" id="fPf"></div></div>
+      </div>
+    </div>
+    <div class="pg" id="pSite">
+      <div class="sh"><div class="k">morgan.dev</div><h1>Hi, I'm Alex.<br>I build small robots.</h1>
+        <p>Robotics engineer in training. Hackathons most weekends, write-ups on the blog, code on GitHub.</p>
+        <div class="lk"><a>Read the blog</a><a class="o" id="xLink">Follow me on X · @alexmorgan_dev</a><a class="o">Email me</a></div></div>
+    </div>
+    <div class="pg" id="pNew"><div><div>morgan.dev</div><p>Opened from Social links › Portfolio › Open</p></div></div>
+  </div>
+  <div id="popup"></div>
+</div>
+
+<div class="menu" id="m0"></div><div class="menu" id="m1"></div><div class="menu" id="m2"></div>
+
+<div class="card" id="cTitle"><img class="logo" src="shots/icon.png" alt=""><h1>Social Links</h1>
+  <h2>Your LinkedIn, GitHub and every other profile link, one right-click away.</h2>
+  <div class="meta"><span>Browser extension</span><span>·</span><b>Chrome · Edge · Firefox</b></div></div>
+<div class="card" id="cPriv"><h1 style="font-size:92px">Private by design</h1>
+  <div class="rows">
+    <div class="row"><i class="n">✕</i>Never reads or changes the websites you visit</div>
+    <div class="row"><i class="n">✕</i>No tracking, no analytics, no network requests</div>
+    <div class="row"><i class="y">✓</i>Links sync through your own browser account</div></div>
+  <div class="warn"><div><small>Chrome's only install warning</small>“Modify data you copy and paste” — for Copy</div></div></div>
+<div class="card" id="cEnd"><img class="logo" src="shots/icon.png" alt=""><h1 style="font-size:100px">Social Links</h1>
+  <h2>Free and open source.</h2><div class="url">github.com/mukeshkbj/SocialLinks</div>
+  <div class="meta"><span>Chrome &amp; Edge: <b>Load unpacked</b></span><span>·</span><span>Firefox: <b>add-on</b></span></div></div>
+
+<div id="cap"></div>
+<div id="key"></div>
+<div id="click"></div>
+<svg id="cursor" viewBox="0 0 24 34"><path d="M2 2 L2 27 L8.5 21 L13 31.5 L17.3 29.6 L12.9 19.3 L21.5 19.3 Z" fill="#fff" stroke="#111" stroke-width="1.8" stroke-linejoin="round"/></svg>
+<div id="fade"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const ease = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const seg = (t, a, b) => ease(clamp((t - a) / (b - a)));
+const lerp = (a, b, k) => a + (b - a) * k;
+const ICON = '<img src="shots/icon.png" alt="">';
+const POP = { a: 'a-list', b: 'b-grid', c: 'c-other-form', d: 'd-added', f: 'f-personal', g: 'g-share', h: 'h-restore' };
+const POPY = { c: 130 };   // scroll offset (css px) so the Other-link form is in view
+const POPH = { a: 572, b: 912, c: 1108, d: 630, f: 410, g: 1108, h: 466 };   // css px at 400 wide
+
+// ---------- menus (titles match the extension's real menu for this demo profile) ----------
+const EDIT_MENU = [['Undo'], ['Redo'], '-', ['Cut'], ['Copy'], ['Paste'], ['Select all'], '-', ['Social links', ICON, true], '-', ['Inspect']];
+const PAGE_MENU = [['Back'], ['Forward'], ['Reload'], '-', ['Save as…'], ['Print…'], '-', ['Social links', ICON, true], '-', ['Inspect']];
+const LINK_MENU = [['Open link in new tab'], ['Open link in new window'], ['Copy link address'], '-', ['Social links', ICON, true], '-', ['Inspect']];
+const SL_MENU = (withX) => [
+  ['LinkedIn — linkedin.com/in/alex-morgan-dev', '', true], ['GitHub — github.com/alexmorgan', '', true],
+  ['⧉ Email — alex@morgan.dev'], ['Portfolio — morgan.dev', '', true],
+  ...(withX ? [['X (Twitter) — x.com/alexmorgan_dev', '', true]] : []),
+  '-', ['+ Add / ✎ Edit', '', true], ['Profile: Work', '', true], ['Manage links…']];
+const LINK_SUB = [['↗ Open'], ['⧉ Copy']];
+const ADD_SUB = (x) => [['+ Add this link'], '-', ['✎ Edit LinkedIn'], ['✎ Edit GitHub'], [(x ? '✎ Edit ' : '+ Add ') + 'X (Twitter)'], ['+ Add Instagram'], ['+ Add YouTube'], ['+ Add Facebook'], ['+ Add TikTok'], ['…']];
+
+// Real menus keep inside the screen: shift up if they would run off the bottom,
+// open to the left (from flipX) if they would run off the right.
+const MAXB = 896, MAXR = 1890;
+function menu(el, items, x, y, hl, show, flipX) {
+  el.innerHTML = items.map((it, i) => it === '-' ? '<div class="sep"></div>' :
+    `<div class="mi${i === hl ? ' hl' : ''}" data-i="${i}"><span class="ic">${it[1] || ''}</span><span>${it[0]}</span>${it[2] ? '<span class="ar">›</span>' : ''}</div>`).join('');
+  el.style.transform = 'none'; el.style.left = x + 'px'; el.style.top = y + 'px';
+  const w = el.offsetWidth, h = el.offsetHeight;
+  if (x + w > MAXR) el.style.left = ((flipX != null ? flipX : MAXR) - w + (flipX != null ? 6 : 0)) + 'px';
+  if (y + h > MAXB) el.style.top = Math.max(40, MAXB - h) + 'px';
+  el.style.opacity = show; el.style.transform = `scale(${lerp(.97, 1, show)})`; el.style.transformOrigin = 'top left';
+}
+// open a submenu next to item i of parent menu el
+function sub(parent, i, child, items, hl, show) {
+  const p = itemPos(parent, i), r = parent.getBoundingClientRect();
+  menu(child, items, r.right - 6, p.y - 7, hl, show, r.left);
+}
+const itemPos = (el, i) => { const r = el.querySelector(`[data-i="${i}"]`).getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height, cx: r.left + r.width * .45, cy: r.top + r.height / 2, right: el.getBoundingClientRect().right }; };
+const center = id => { const r = $(id).getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, r }; };
+
+// ---------- base state ----------
+function reset() {
+  for (const id of ['cTitle', 'cPriv', 'cEnd', 'key', 'click', 'm0', 'm1', 'm2']) $(id).style.opacity = 0;
+  $('win').style.opacity = 1; $('win').style.transform = '';
+  $('cap').innerHTML = ''; $('cap').style.opacity = 1; $('fade').style.opacity = 0;
+  $('popup').style.opacity = 0; $('popup').innerHTML = '';
+  $('badge').textContent = ''; $('badge').style.opacity = 0; $('ext').className = '';
+  $('tab2').style.display = 'none'; $('tab1').className = 'tab on';
+  for (const p of ['pForm', 'pSite', 'pNew']) $(p).style.opacity = 0;
+  for (const f of ['fLi', 'fGh', 'fPf']) { $(f).className = 'inp'; $(f).innerHTML = '<span class="ph">https://</span>'; }
+  $('cursor').style.opacity = 1;
+}
+function page(name, url, title, fav) {
+  $(name).style.opacity = 1;
+  $('url').innerHTML = url; $('tt1').textContent = title; $('fav1').style.background = fav;
+}
+function cursorAt(x, y, o = 1) { $('cursor').style.left = x + 'px'; $('cursor').style.top = y + 'px'; $('cursor').style.opacity = o; }
+// path: [[t, x, y], …] with eased moves between points
+function cursorPath(t, pts) {
+  if (t <= pts[0][0]) return cursorAt(pts[0][1], pts[0][2]);
+  for (let i = 1; i < pts.length; i++) if (t <= pts[i][0]) {
+    const k = seg(t, pts[i - 1][0], pts[i][0]);
+    return cursorAt(lerp(pts[i - 1][1], pts[i][1], k), lerp(pts[i - 1][2], pts[i][2], k));
+  }
+  const l = pts[pts.length - 1]; cursorAt(l[1], l[2]);
+}
+function clickRing(t, at, x, y) {
+  const k = (t - at) / .45; if (k < 0 || k > 1) return;
+  const c = $('click'); c.style.left = x + 'px'; c.style.top = y + 'px'; c.style.opacity = 1 - k; c.style.transform = `translate(-50%,-50%) scale(${.4 + k})`;
+}
+function caption(t, html, a = .25, b = 99) { $('cap').innerHTML = '<span>' + html + '</span>'; $('cap').style.opacity = seg(t, a, a + .4) * (1 - seg(t, b - .4, b)); }
+function badge(t, at, txt, color) { if (t < at || t > at + 2.2) return; $('badge').textContent = txt; $('badge').style.background = color; $('badge').style.opacity = seg(t, at, at + .15) * (1 - seg(t, at + 1.9, at + 2.2)); }
+function popup(stack, t) { // stack: [[t0, key], …] crossfading popup screenshots
+  const p = $('popup'); let h = 0, html = '';
+  stack.forEach(([t0, k], i) => {
+    const next = stack[i + 1];
+    const o = seg(t, t0, t0 + .35) * (next ? 1 - seg(t, next[0], next[0] + .35) : 1);
+    const dy = (POPY[k] || 0) * 1.25;
+    if (o > 0) { html += `<img src="shots/${POP[k]}.png" style="opacity:${o};top:${-dy}px">`; h = Math.max(h, Math.min(POPH[k] * 1.25 - dy, 750) * (o > .5 ? 1 : 0)); }
+  });
+  p.innerHTML = html; p.style.height = (h || 640) + 'px';
+}
+function fadeEdges(t, dur, fin = .35, fout = .35) { $('fade').style.opacity = Math.max(fin ? 1 - seg(t, 0, fin) : 0, fout ? seg(t, dur - fout, dur) : 0); }
+function typed(el, text, t, a, b) { const n = Math.round(text.length * clamp((t - a) / (b - a))); el.innerHTML = text.slice(0, n) + (n < text.length && n > 0 ? '<span class="caret"></span>' : ''); }
+
+// ---------- scenes ----------
+const S = [];
+S.push({ name: 'title', dur: 4.5, draw(t) {
+  $('win').style.opacity = 0; $('cursor').style.opacity = 0;
+  const c = $('cTitle'); c.style.opacity = seg(t, .1, .9) * (1 - seg(t, 4, 4.5)); c.style.transform = `translateY(${lerp(24, 0, seg(t, .1, 1.1))}px)`;
+  $('fade').style.opacity = 1 - seg(t, 0, .5);
+} });
+
+S.push({ name: 'problem', dur: 4.2, draw(t) {
+  page('pForm', 'careers.northwind-robotics.example/<span>apply/step-2</span>', 'Apply · Northwind Robotics', '#f2b84b');
+  $('win').style.transform = `scale(${lerp(.97, 1, seg(t, 0, .8))})`; $('win').style.opacity = seg(t, 0, .5);
+  caption(t, 'Every application asks for the <em>same profile links</em>.', .5);
+  cursorPath(t, [[0, 1500, 820], [2.2, 900, 520], [4.2, 860, 470]]);
+} });
+
+S.push({ name: 'copy', dur: 12, draw(t) {
+  page('pForm', 'careers.northwind-robotics.example/<span>apply/step-2</span>', 'Apply · Northwind Robotics', '#f2b84b');
+  const li = center('fLi'), gh = center('fGh');
+  // 0-0.8 click LinkedIn field; 1.0 right-click; menu; Social links; LinkedIn; Copy (4.6); paste (5.4)
+  const mx = li.r.left + 120, my = li.y + 4;
+  const rc = t >= 1.0 && t < 4.75, sl = t >= 1.9 && t < 4.75, ls = t >= 2.9 && t < 4.75;
+  if (t >= .7) $('fLi').className = 'inp focus';
+  menu($('m0'), EDIT_MENU, mx, my, t >= 1.7 ? 8 : -1, rc ? seg(t, 1, 1.15) : 0);
+  const p8 = itemPos($('m0'), 8);
+  sub($('m0'), 8, $('m1'), SL_MENU(false), t >= 2.7 ? 0 : -1, sl ? seg(t, 1.9, 2.05) : 0);
+  const q0 = itemPos($('m1'), 0);
+  sub($('m1'), 0, $('m2'), LINK_SUB, t >= 4.0 ? 1 : -1, ls ? seg(t, 2.9, 3.05) : 0);
+  const r1 = itemPos($('m2'), 1);
+  cursorPath(t, [[0, 860, 470], [.6, mx + 4, my - 8], [1.3, mx + 40, my + 20], [1.75, p8.cx, p8.cy], [2.5, p8.cx + 60, p8.cy], [2.85, q0.cx, q0.cy], [3.6, q0.right - 30, q0.cy], [3.95, r1.cx, r1.cy], [5.0, r1.cx + 20, r1.cy + 40], [5.3, mx + 30, my + 30],
+    [7.0, mx + 30, my + 30], [7.5, gh.r.left + 260, gh.y + 4], [11.5, gh.r.left + 270, gh.y + 14]]);
+  clickRing(t, .65, mx + 4, my - 8); clickRing(t, 4.6, r1.cx, r1.cy);
+  badge(t, 4.75, '⧉', '#00685a');
+  // Ctrl+V
+  const kv = (at, keyx, keyy) => { if (t > at && t < at + .9) { const k = $('key'); k.textContent = 'Ctrl + V'; k.style.left = keyx + 'px'; k.style.top = keyy + 'px'; k.style.opacity = seg(t, at, at + .12) * (1 - seg(t, at + .7, at + .9)); } };
+  kv(5.2, li.r.right + 24, li.y - 30);
+  if (t >= 5.45) $('fLi').innerHTML = 'https://www.linkedin.com/in/alex-morgan-dev';
+  // GitHub, sped up: 7.6 right-click → 9.6 copy → 10.2 paste
+  if (t >= 7.4) { $('fLi').className = 'inp'; $('fGh').className = 'inp focus'; }
+  const gx = gh.r.left + 150, gy = gh.y + 4;
+  const g0 = t >= 7.7 && t < 9.75, g1 = t >= 8.25 && t < 9.75, g2 = t >= 8.85 && t < 9.75;
+  if (t >= 7.7) {
+    menu($('m0'), EDIT_MENU, gx, gy, t >= 8.1 ? 8 : -1, g0 ? 1 : 0);
+    const a8 = itemPos($('m0'), 8);
+    sub($('m0'), 8, $('m1'), SL_MENU(false), t >= 8.7 ? 1 : -1, g1 ? 1 : 0);
+    const b1 = itemPos($('m1'), 1);
+    sub($('m1'), 1, $('m2'), LINK_SUB, t >= 9.3 ? 1 : -1, g2 ? 1 : 0);
+    const c1 = itemPos($('m2'), 1);
+    cursorPath(t, [[7.5, gx + 4, gy], [8.1, a8.cx, a8.cy], [8.4, a8.cx + 60, a8.cy], [8.7, b1.cx, b1.cy], [9.0, b1.right - 30, b1.cy], [9.3, c1.cx, c1.cy], [10.0, gx + 40, gy + 30], [12, gx + 50, gy + 34]]);
+    clickRing(t, 9.6, c1.cx, c1.cy);
+  }
+  badge(t, 9.75, '⧉', '#00685a');
+  kv(10.1, gh.r.right + 24, gh.y - 30);
+  if (t >= 10.35) $('fGh').innerHTML = 'https://github.com/alexmorgan';
+  caption(t, t < 7 ? 'Right-click › <em>Social links</em> › LinkedIn › <em>Copy</em>. Then paste.' : 'Same for GitHub, or any link you’ve saved.', .2);
+  if (t > 6.6 && t < 7.4) $('cap').style.opacity = 1 - seg(t, 6.6, 6.85) + seg(t, 7.0, 7.3);
+  fadeEdges(t, 12, 0, .35);
+} });
+
+S.push({ name: 'open', dur: 5.4, draw(t) {
+  page(t < 4.0 ? 'pForm' : 'pNew', t < 4.0 ? 'careers.northwind-robotics.example/<span>apply/step-2</span>' : '<span>morgan.dev</span>', t < 4.0 ? 'Apply · Northwind Robotics' : 'morgan.dev', t < 4.0 ? '#f2b84b' : '#101418');
+  if (t < 4.0) { $('fLi').innerHTML = 'https://www.linkedin.com/in/alex-morgan-dev'; $('fGh').innerHTML = 'https://github.com/alexmorgan'; }
+  else { $('tab2').style.display = 'flex'; $('tab1').className = 'tab'; $('tab2').className = 'tab on'; $('tt1').textContent = 'Apply · Northwind Robotics'; $('fav1').style.background = '#f2b84b'; }
+  const mx = 640, my = 300;
+  const on = t >= .9 && t < 3.9;
+  menu($('m0'), PAGE_MENU, mx, my, t >= 1.5 ? 7 : -1, on ? 1 : 0);
+  const p7 = itemPos($('m0'), 7);
+  sub($('m0'), 7, $('m1'), SL_MENU(false), t >= 2.3 ? 3 : -1, on && t >= 1.75 ? 1 : 0);
+  const q3 = itemPos($('m1'), 3);
+  sub($('m1'), 3, $('m2'), LINK_SUB, t >= 3.0 ? 0 : -1, on && t >= 2.65 ? 1 : 0);
+  const r0 = itemPos($('m2'), 0);
+  cursorPath(t, [[0, 1100, 400], [.8, mx + 4, my], [1.45, p7.cx, p7.cy], [2.0, p7.cx + 40, p7.cy], [2.3, q3.cx, q3.cy], [2.7, q3.x + q3.w - 30, q3.cy], [3.1, r0.cx, r0.cy], [5.4, r0.cx + 10, r0.cy + 20]]);
+  clickRing(t, .85, mx + 4, my); clickRing(t, 3.75, r0.cx, r0.cy);
+  caption(t, 'Or <em>open</em> any saved link in a new tab.', .2);
+  fadeEdges(t, 5.4, .3, .35);
+} });
+
+S.push({ name: 'add', dur: 8, draw(t) {
+  page('pSite', '<span>morgan.dev</span>', 'Alex Morgan — morgan.dev', '#101418');
+  const x = center('xLink'), lx = x.x + 40, ly = x.y + 4;
+  const on = t >= 1.2 && t < 4.6;
+  menu($('m0'), LINK_MENU, lx, ly, t >= 1.9 ? 4 : -1, on ? seg(t, 1.2, 1.35) : 0);
+  const p4 = itemPos($('m0'), 4);
+  sub($('m0'), 4, $('m1'), SL_MENU(false), t >= 2.8 ? 5 : -1, on && t >= 2.1 ? 1 : 0);
+  const q5 = itemPos($('m1'), 5);
+  sub($('m1'), 5, $('m2'), ADD_SUB(false), t >= 3.7 ? 0 : -1, on && t >= 3.15 ? 1 : 0);
+  const r0 = itemPos($('m2'), 0);
+  cursorPath(t, [[0, 1300, 700], [1.1, lx + 4, ly], [1.85, p4.cx, p4.cy], [2.4, p4.cx + 60, p4.cy], [2.8, q5.cx, q5.cy], [3.3, q5.right - 30, q5.cy], [3.7, r0.cx, r0.cy], [5.2, 1560, 160], [8, 1565, 168]]);
+  clickRing(t, 1.15, lx + 4, ly); clickRing(t, 4.45, r0.cx, r0.cy);
+  badge(t, 4.6, '✓', '#00685a');
+  if (t > 4.6 && t < 7.2) $('ext').className = 'hot';
+  // after saving, show the menu again with X now listed and ✎ Edit X
+  if (t >= 5.9) {
+    const k = seg(t, 5.9, 6.1);
+    menu($('m1'), SL_MENU(true), 860, 230, 6, k);
+    sub($('m1'), 6, $('m2'), ADD_SUB(true), 4, k);
+    $('cursor').style.opacity = 0;
+  }
+  caption(t, t < 5.6 ? 'Right-click a profile link › <em>+ Add this link</em>. Platform and username detected.' : 'Saved: X now shows <em>✎ Edit</em> instead of + Add.', .2);
+  if (t > 5.3 && t < 5.9) $('cap').style.opacity = 1 - seg(t, 5.3, 5.5) + seg(t, 5.6, 5.85);
+  fadeEdges(t, 8, .3, .35);
+} });
+
+S.push({ name: 'popup', dur: 13, draw(t) {
+  page('pSite', '<span>morgan.dev</span>', 'Alex Morgan — morgan.dev', '#101418');
+  const e = center('ext');
+  $('popup').style.opacity = seg(t, 1.0, 1.25);
+  if (t >= .9) $('ext').className = 'hot';
+  popup([[1.0, 'a'], [4.2, 'b'], [7.2, 'c'], [10.4, 'd']], t);
+  const P = $('popup').getBoundingClientRect(), s = 1.25;
+  const at = (cx, cy) => [P.left + cx * s, P.top + cy * s];
+  // positions measured in the real popup (css px), see measure.cjs
+  const addBtn = at(345, 61), ghTile = at(285, 161), custom = at(115, 425), val = at(200, 543 - 130), save = at(66, 594 - 130);
+  cursorPath(t, [[0, 1300, 600], [.85, e.x + 2, e.y + 4], [2.2, e.x + 2, e.y + 4], [3.6, ...addBtn], [5.2, ...ghTile], [6.2, ...custom], [6.9, ...custom], [8.6, ...val], [9.6, ...save], [13, save[0] + 30, save[1] + 40]]);
+  clickRing(t, .9, e.x, e.y); clickRing(t, 3.95, ...addBtn); clickRing(t, 6.95, ...custom); clickRing(t, 10.2, ...save);
+  const caps = [[0, 'Everything lives behind the <em>toolbar button</em>.'], [4.0, '<em>+</em> means not added yet. <em>✎</em> means saved: click it to edit.'], [7.0, 'Add <em>any other site</em> with your own name: Kaggle, Behance, a portfolio.'], [10.3, 'Drag or use ↑ ↓ to reorder. Undo if you remove one by mistake.']];
+  let ci = 0; caps.forEach((c, i) => { if (t >= c[0]) ci = i; });
+  caption(t, caps[ci][1], .2);
+  const nxt = caps[ci + 1]; if (nxt && t > nxt[0] - .3) $('cap').style.opacity = 1 - seg(t, nxt[0] - .3, nxt[0]);
+  if (t > caps[ci][0] && ci > 0) $('cap').style.opacity *= seg(t, caps[ci][0], caps[ci][0] + .3);
+  fadeEdges(t, 13, .3, 0);
+} });
+
+S.push({ name: 'profiles', dur: 5.5, draw(t) {
+  page('pSite', '<span>morgan.dev</span>', 'Alex Morgan — morgan.dev', '#101418');
+  $('ext').className = 'hot'; $('popup').style.opacity = 1;
+  popup([[-1, 'd'], [2.0, 'f']], t);
+  const P = $('popup').getBoundingClientRect(), s = 1.25;
+  const sel = [P.left + 152 * s, P.top + 105 * s];
+  cursorPath(t, [[0, P.left + 90, P.top + 420], [1.4, ...sel], [5.5, sel[0] + 6, sel[1] + 8]]);
+  clickRing(t, 1.7, ...sel);
+  caption(t, 'Separate <em>Work</em> and <em>Personal</em> profiles. Switch here or from the menu.', .2);
+} });
+
+S.push({ name: 'share', dur: 6, draw(t) {
+  page('pSite', '<span>morgan.dev</span>', 'Alex Morgan — morgan.dev', '#101418');
+  $('ext').className = 'hot'; $('popup').style.opacity = 1;
+  popup([[-1, 'f'], [.6, 'g']], t);
+  $('cursor').style.opacity = 0;
+  caption(t, '<em>Share card:</em> one scan saves you as a phone contact. vCard download too.', .2);
+} });
+
+S.push({ name: 'backup', dur: 5.2, draw(t) {
+  page('pSite', '<span>morgan.dev</span>', 'Alex Morgan — morgan.dev', '#101418');
+  $('ext').className = 'hot'; $('popup').style.opacity = 1;
+  popup([[-1, 'g'], [.6, 'h']], t);
+  $('cursor').style.opacity = 0;
+  caption(t, '<em>Back up</em> to a file. <em>Restore</em> with a preview, then merge or replace.', .2);
+  fadeEdges(t, 5.2, 0, .4);
+} });
+
+S.push({ name: 'privacy', dur: 6.5, draw(t) {
+  $('win').style.opacity = 0; $('cursor').style.opacity = 0;
+  const c = $('cPriv'); c.style.opacity = seg(t, .2, .8);
+  [...c.querySelectorAll('.row,.warn')].forEach((r, i) => { const k = seg(t, .5 + i * .45, 1.1 + i * .45); r.style.opacity = k; r.style.transform = `translateY(${lerp(16, 0, k)}px)`; });
+  fadeEdges(t, 6.5, .35, .4);
+} });
+
+S.push({ name: 'end', dur: 6.5, draw(t) {
+  $('win').style.opacity = 0; $('cursor').style.opacity = 0;
+  const c = $('cEnd'); c.style.opacity = seg(t, .2, .9);
+  c.style.transform = `translateY(${lerp(20, 0, seg(t, .2, 1.2))}px)`;
+  $('fade').style.opacity = Math.max(1 - seg(t, 0, .35), seg(t, 5.6, 6.5));
+} });
+
+window.SCENES = S.map(s => ({ name: s.name, dur: s.dur }));
+window.render = (i, t) => { reset(); S[i].draw(t); };
+</script>
+</body></html>
